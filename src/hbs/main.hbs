@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>gph</title>
+    <meta charset="utf-8">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:creator" content="@czQery">
+    <meta name="author" content="Štěpán Aubrecht">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        #wrapper {
+            display: flex;
+            position: relative;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            height: 100svh;
+            width: 100%;
+        }
+
+        #ch {
+            margin: auto 20px;
+        }
+    </style>
+</head>
+<body>
+<div id="wrapper">
+    <canvas height="100svh" id="ch"></canvas>
+</div>
+</body>
+<script src="/src/public/chart.js"></script>
+<script>
+    const test = "{{data}}";
+
+    const data1 = [
+        {date: 1693548000000, time: [8, 14]},
+        {date: 1693670400000, time: [6, 16]},
+        {date: 1693717200000, time: [7, 10]},
+    ];
+    const data2 = [
+        {date: 1693548000000, time: [15, 17]},
+        {date: 1693670400000, time: [17, 20]},
+        {date: 1693717200000, time: [14, 16]},
+    ];
+
+    const data3 = [
+        {date: 1693548000000, time: [4, 10]},
+        {date: 1693670400000, time: [9, 20]},
+        {date: 1693717200000, time: [5, 15]},
+    ];
+    const data4 = [
+        {date: 1693548000000, time: [14, 20]},
+        {date: 1693670400000, time: [21, 22]},
+        {date: 1693717200000, time: [16, 19]},
+    ];
+
+    const ch = new Chart(document.getElementById("ch").getContext("2d"), {
+        type: "bar",
+        data: {
+            labels: data1.map(row => row.date),
+            datasets: [
+                {
+                    stack: 1,
+                    label: "user1",
+                    backgroundColor: "blue",
+                    data: data1.map(row => row.time),
+                },
+                {
+                    stack: 1,
+                    label: "user1",
+                    backgroundColor: "blue",
+                    data: data2.map(row => row.time),
+                },
+                {
+                    stack: 2,
+                    label: "user2",
+                    backgroundColor: "red",
+                    data: data3.map(row => row.time),
+                },
+                {
+                    stack: 2,
+                    label: "user2",
+                    backgroundColor: "red",
+                    data: data4.map(row => row.time)
+                }
+            ]
+        },
+        options: {
+            plugins: {
+                /*legend: {
+                    display: false
+                },*/
+                title: {
+                    text: "Log-in & Log-out",
+                    display: true
+                }
+            },
+            scales: {
+                x: {
+                    parsing: false,
+                    type: "timeseries",
+                    time: {
+                        unit: "day"
+                    },
+                    title: {
+                        display: true,
+                        text: "Date"
+                    },
+                    stacked: true
+                },
+                y: {
+                    type: "linear",
+                    min: 0,
+                    max: 24,
+                    ticks: {
+                        stepSize: 1,
+                        callback: (value, index, values) => {
+                            if (value.toString().length === 1) {
+                                return "0" + value + ":00";
+                            } else if (value.toString().length === 2) {
+                                return value + ":00";
+                            } else {
+                                return value;
+                            }
+                        }
+                    },
+                    beginAtZero: true,
+                    stacked: false
+                }
+            }
+        },
+    });
+</script>
+</html>
