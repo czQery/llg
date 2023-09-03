@@ -41,56 +41,77 @@
 </body>
 <script src="/src/public/chart.js"></script>
 <script>
+    const formatTime = (value) => {
+        let h = Math.trunc(value / 60);
+        let m = value % 60;
+
+        if (h.toString().length === 1) {
+            h = "0" + h.toString();
+        }
+
+        if (m.toString().length === 1) {
+            m = "0" + m.toString();
+        }
+
+        return h.toString() + ":" + m.toString();
+    }
+
     const test = "{{data}}";
 
     const data1 = [
-        {date: 1693548000000, time: [8, 14]},
-        {date: 1693670400000, time: [6, 16]},
-        {date: 1693717200000, time: [7, 10]},
+        {date: 1693548000000, time: [8 * 60, 14 * 60]},
+        {date: 1693670400000, time: [6 * 60, 16 * 60]},
+        {date: 1693717200000, time: [7 * 60, 10 * 60]},
     ];
     const data2 = [
-        {date: 1693548000000, time: [15, 17]},
-        {date: 1693670400000, time: [17, 20]},
-        {date: 1693717200000, time: [14, 16]},
+        {date: 1693548000000, time: [15 * 60, 17.5 * 60]},
+        {date: 1693670400000, time: [17 * 60, 20 * 60]},
+        {date: 1693717200000, time: [14 * 60, 16 * 60]},
     ];
-
     const data3 = [
-        {date: 1693548000000, time: [4, 10]},
-        {date: 1693670400000, time: [9, 20]},
-        {date: 1693717200000, time: [5, 15]},
+        {date: 1693548000000, time: [4 * 60, 10 * 60]},
+        {date: 1693670400000, time: [9 * 60, 20 * 60]},
+        {date: 1693717200000, time: [5 * 60, 15 * 60]},
     ];
     const data4 = [
-        {date: 1693548000000, time: [14, 20]},
-        {date: 1693670400000, time: [21, 22]},
-        {date: 1693717200000, time: [16, 19]},
+        {date: 1693548000000, time: [14 * 60, 20 * 60]},
+        {date: 1693670400000, time: [21 * 60, 22 * 60]},
+        {date: 1693717200000, time: [16 * 60, 19 * 60]},
     ];
 
     const ch = new Chart(document.getElementById("ch").getContext("2d"), {
+        defaults: {
+            elements: {
+                bar: {
+                    borderWidth: 1,
+                }
+            }
+        },
         type: "bar",
         data: {
             labels: data1.map(row => row.date),
             datasets: [
                 {
                     stack: 1,
-                    label: "user1",
+                    label: "fa",
                     backgroundColor: "blue",
                     data: data1.map(row => row.time),
                 },
                 {
                     stack: 1,
-                    label: "user1",
+                    label: "fa",
                     backgroundColor: "blue",
                     data: data2.map(row => row.time),
                 },
                 {
                     stack: 2,
-                    label: "user2",
+                    label: "ja",
                     backgroundColor: "red",
                     data: data3.map(row => row.time),
                 },
                 {
                     stack: 2,
-                    label: "user2",
+                    label: "ja",
                     backgroundColor: "red",
                     data: data4.map(row => row.time)
                 }
@@ -98,12 +119,23 @@
         },
         options: {
             plugins: {
-                /*legend: {
+                legend: {
                     display: false
-                },*/
+                },
                 title: {
                     text: "Log-in & Log-out",
                     display: true
+                },
+                tooltip: {
+                    yAlign: "bottom",
+                    callbacks: {
+                        title: (items) => {
+                            return "User: " + items[0]["dataset"]["label"];
+                        },
+                        label: (item) => {
+                            return formatTime(item["raw"][0])+"-"+formatTime(item["raw"][1]);
+                        },
+                    }
                 }
             },
             scales: {
@@ -117,22 +149,19 @@
                         display: true,
                         text: "Date"
                     },
-                    stacked: true
+                    stacked: true,
+                    grid: {
+                        lineWidth: 0.5,
+                    }
                 },
                 y: {
                     type: "linear",
                     min: 0,
-                    max: 24,
+                    max: 1440,
                     ticks: {
-                        stepSize: 1,
+                        stepSize: 60,
                         callback: (value, index, values) => {
-                            if (value.toString().length === 1) {
-                                return "0" + value + ":00";
-                            } else if (value.toString().length === 2) {
-                                return value + ":00";
-                            } else {
-                                return value;
-                            }
+                            return formatTime(value);
                         }
                     },
                     beginAtZero: true,
