@@ -1,4 +1,4 @@
-module github.com/czQery/gph
+module github.com/czQery/llg
 
 go 1.21.0
 

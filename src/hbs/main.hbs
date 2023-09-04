@@ -1,42 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>gph</title>
+    <title>llg</title>
     <meta charset="utf-8">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:creator" content="@czQery">
     <meta name="author" content="Štěpán Aubrecht">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <link rel="preload" href="/src/public/roboto.woff2" as="font" type="font/woff2" crossorigin="anonymous"/>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #ffffff;
+        @font-face {
+            font-family: "Roboto";
+            src: local("Roboto"), local("Roboto-Regular"), url("/src/public/roboto.woff2") format("woff2");
+            font-weight: normal;
+            font-style: normal;
+            font-display: block;
+        }
+
+        :root {
+            --rad: 5px;
+            --transition: 0.1s;
+            --shadow: 8px 8px 8px rgba(0, 0, 0, 0.1);
+            --hover: brightness(40%);
         }
 
         * {
             box-sizing: border-box;
+            font-family: "Roboto", sans-serif;
+        }
+
+        body {
+            margin: 20px;
+            padding: 0;
+            background-color: #262428;
+            display: grid;
+            row-gap: 20px;
+            grid-template-columns: 1fr;
+            grid-template-rows: min-content 1fr;
+            position: relative;
+            height: calc(100svh - 40px);
+            width: calc(100% - 40px);
         }
 
         #wrapper {
-            display: flex;
-            position: relative;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            height: 100svh;
-            width: 100%;
+            display: block;
+            height: 100%;
+            grid-column: 1/4;
+            grid-row: 2/4;
+            padding: 10px;
+            background-color: #FFF;
+            border-radius: var(--rad);
         }
 
-        #ch {
-            margin: auto 20px;
+        #header {
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
         }
+
+        #header h1 {
+            color: #FFF;
+            margin: 0;
+        }
+
+        #header form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            color: #FFF;
+            text-align: right;
+        }
+
+        #header form button {
+            height: 30px;
+            width: 100px;
+            background-color: #3b60dc;
+            border: none;
+            border-radius: var(--rad);
+            text-transform: uppercase;
+            color: #FFF;
+            transition: var(--transition) all linear;
+        }
+
+        #header form button:hover {
+            cursor: pointer;
+            filter: var(--hover);
+        }
+
+        @media screen and (max-width: 519px) {
+            body {
+                margin: 10px;
+                height: calc(100svh - 20px);
+                width: calc(100% - 20px);
+                row-gap: 10px;
+            }
+        }
+
     </style>
 </head>
 <body>
+<header id="header">
+    <h1>Login/Logoff Graph</h1>
+    <form>
+        <div>
+            <label for="user1">fa</label>
+            <input type="checkbox" id="user1" name="fa" value="fa">
+        </div>
+        <div>
+            <label for="month">Month:</label>
+            <input type="month" id="month" name="month" min="2020-00" value="2023-01"/>
+        </div>
+        <div>
+            <button>render</button>
+        </div>
+    </form>
+</header>
 <div id="wrapper">
-    <canvas height="100svh" id="ch"></canvas>
+    <canvas id="ch"></canvas>
 </div>
 </body>
 <script src="/src/public/chart.js"></script>
@@ -60,22 +141,20 @@
 
     const data1 = [
         {date: 1693548000000, time: [8 * 60, 14 * 60]},
-        {date: 1693670400000, time: [6 * 60, 16 * 60]},
-        {date: 1693717200000, time: [7 * 60, 10 * 60]},
-    ];
-    const data2 = [
         {date: 1693548000000, time: [15 * 60, 17.5 * 60]},
+        {date: 1693670400000, time: [6 * 60, 16 * 60]},
         {date: 1693670400000, time: [17 * 60, 20 * 60]},
+        {date: 1693717200000, time: [7 * 60, 10 * 60]},
         {date: 1693717200000, time: [14 * 60, 16 * 60]},
     ];
-    const data3 = [
+
+    const data2 = [
         {date: 1693548000000, time: [4 * 60, 10 * 60]},
-        {date: 1693670400000, time: [9 * 60, 20 * 60]},
-        {date: 1693717200000, time: [5 * 60, 15 * 60]},
-    ];
-    const data4 = [
         {date: 1693548000000, time: [14 * 60, 20 * 60]},
-        {date: 1693670400000, time: [21 * 60, 22 * 60]},
+        {date: 1693670400000, time: [9 * 60, 20 * 60]},
+        {},
+        /*{date: 1693670400000, time: [21 * 60, 22 * 60]},*/
+        {date: 1693717200000, time: [5 * 60, 15 * 60]},
         {date: 1693717200000, time: [16 * 60, 19 * 60]},
     ];
 
@@ -92,39 +171,26 @@
             labels: data1.map(row => row.date),
             datasets: [
                 {
-                    stack: 1,
                     label: "fa",
                     backgroundColor: "blue",
                     data: data1.map(row => row.time),
                 },
                 {
-                    stack: 1,
-                    label: "fa",
-                    backgroundColor: "blue",
-                    data: data2.map(row => row.time),
-                },
-                {
-                    stack: 2,
                     label: "ja",
                     backgroundColor: "red",
-                    data: data3.map(row => row.time),
-                },
-                {
-                    stack: 2,
-                    label: "ja",
-                    backgroundColor: "red",
-                    data: data4.map(row => row.time)
+                    data: data2.map(row => row.time)
                 }
             ]
         },
         options: {
+            responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: false
+                    display: true
                 },
                 title: {
-                    text: "Log-in & Log-out",
-                    display: true
+                    display: false
                 },
                 tooltip: {
                     yAlign: "bottom",
@@ -133,29 +199,26 @@
                             return "User: " + items[0]["dataset"]["label"];
                         },
                         label: (item) => {
-                            return formatTime(item["raw"][0])+"-"+formatTime(item["raw"][1]);
+                            return formatTime(item["raw"][0]) + "-" + formatTime(item["raw"][1]);
                         },
                     }
                 }
             },
             scales: {
                 x: {
-                    parsing: false,
                     type: "timeseries",
+                    stacked: false,
+                    parsing: false,
                     time: {
                         unit: "day"
                     },
-                    title: {
-                        display: true,
-                        text: "Date"
-                    },
-                    stacked: true,
                     grid: {
                         lineWidth: 0.5,
                     }
                 },
                 y: {
                     type: "linear",
+                    stacked: false,
                     min: 0,
                     max: 1440,
                     ticks: {
@@ -165,7 +228,6 @@
                         }
                     },
                     beginAtZero: true,
-                    stacked: false
                 }
             }
         },
