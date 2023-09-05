@@ -138,6 +138,7 @@
     }
 
     const test = "{{data}}";
+    const sessionsPerDay = 2;
 
     const data1 = [
         {date: 1693548000000, time: [8 * 60, 14 * 60]},
@@ -196,7 +197,28 @@
                     yAlign: "bottom",
                     callbacks: {
                         title: (items) => {
-                            return "User: " + items[0]["dataset"]["label"];
+                            let session = (items[0]["raw"][1] - items[0]["raw"][0]) / 60;
+                            let today = 0;
+
+                            for (let i = 0; i < items[0]["dataset"]["data"].length; i++) {
+                                if (!items[0]["dataset"]["data"][i]) {
+                                    continue;
+                                }
+
+                                if (items[0]["dataset"]["data"][i][0] === items[0]["raw"][0] && items[0]["dataset"]["data"][i][1] === items[0]["raw"][1]) {
+
+                                    if (i % sessionsPerDay) {
+                                        if (items[0]["dataset"]["data"][i - 1]) today = (items[0]["dataset"]["data"][i - 1][1] - items[0]["dataset"]["data"][i - 1][0]) / 60
+                                    } else {
+                                        if (items[0]["dataset"]["data"][i + 1]) today = (items[0]["dataset"]["data"][i + 1][1] - items[0]["dataset"]["data"][i + 1][0]) / 60
+                                    }
+
+                                    today = today+session;
+                                    break;
+                                }
+                            }
+
+                            return "User: " + items[0]["dataset"]["label"] + "\nSession: " + session.toString() + "h\nToday: " + today.toString() + "h";
                         },
                         label: (item) => {
                             return formatTime(item["raw"][0]) + "-" + formatTime(item["raw"][1]);
