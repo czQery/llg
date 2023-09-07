@@ -1,4 +1,14 @@
+# Client
+client/logs
+client/*.log*
+client/node_modules
+client/dist
+client/dist-ssr
+client/*.local
+
+# Server
+server/llg.exe
+server/llg
+
 .idea
 data
-llg.exe
-llg

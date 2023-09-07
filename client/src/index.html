@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>llg</title>
+    <meta charset="utf-8">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:creator" content="@czQery">
+    <meta name="author" content="Štěpán Aubrecht">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preload" href="/font/roboto.woff2" as="font" type="font/woff2" crossorigin="anonymous"/>
+    <style>
+        @font-face {
+            font-family: "Roboto";
+            src: local("Roboto"), local("Roboto-Regular"), url("/font/roboto.woff2") format("woff2");
+            font-weight: normal;
+            font-style: normal;
+            font-display: block;
+        }
+
+        :root {
+            --c0: #262428;
+
+            --rad: 5px;
+            --transition: 0.1s;
+            --shadow: 8px 8px 8px rgba(0, 0, 0, 0.1);
+            --hover: brightness(40%);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: "Roboto", sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--c0);
+        }
+
+        dialog {
+            border: none;
+            border-radius: var(--rad);
+            background-color: #fff;
+            box-shadow: var(--shadow);
+            max-width: calc(100% - 40px);
+            max-height: calc(100% - 40px);
+        }
+
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #eaeaea;
+        }
+
+        button {
+            border: none;
+            border-radius: var(--rad);
+            text-transform: uppercase;
+            transition: var(--transition) all linear;
+        }
+
+        button:hover {
+            cursor: pointer;
+            filter: var(--hover);
+        }
+
+        main {
+            margin: 20px;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: min-content 1fr min-content;
+            position: relative;
+            height: calc(100svh - 40px);
+            width: calc(100% - 40px);
+        }
+
+        @media screen and (max-width: 519px) {
+            dialog {
+                max-width: calc(100% - 20px);
+                max-height: calc(100% - 20px);
+            }
+
+            main {
+                margin: 10px;
+                height: calc(100svh - 20px);
+                width: calc(100% - 20px);
+            }
+
+            #header {
+                margin-bottom: 10px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+<div id="app"></div>
+<script type="module" src="main.ts"></script>
+</body>
+</html>
