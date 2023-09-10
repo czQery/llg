@@ -10,51 +10,20 @@
         TimeSeriesScale,
         Tooltip
     } from "chart.js";
-    import {onMount} from "svelte";
-    import {formatTime} from "../helper";
+    import {formatTime, getRandomColor} from "../ts/helper";
+    import {dataStore, type dataUser, type dataUserSession} from "../ts/api";
 
-    Chart.register(LinearScale, TimeSeriesScale, BarController, BarElement, PointElement, Tooltip, Legend);
-
-    const sessionsPerDay = 2;
-
-    const data1 = [
-        {date: 1693548000000, time: [8 * 60, 14 * 60]},
-        {date: 1693548000000, time: [15 * 60, 17.5 * 60]},
-        {date: 1693670400000, time: [6 * 60, 16 * 60]},
-        {date: 1693670400000, time: [17 * 60, 20 * 60]},
-        {date: 1693717200000, time: [7 * 60, 10 * 60]},
-        {date: 1693717200000, time: [14 * 60, 16 * 60]},
-    ];
-
-    const data2 = [
-        {date: 1693548000000, time: [4 * 60, 10 * 60]},
-        {date: 1693548000000, time: [14 * 60, 20 * 60]},
-        {date: 1693670400000, time: [9 * 60, 20 * 60]},
-        {},
-        /*{date: 1693670400000, time: [21 * 60, 22 * 60]},*/
-        {date: 1693717200000, time: [5 * 60, 15 * 60]},
-        {date: 1693717200000, time: [16 * 60, 19 * 60]},
-    ];
-
+    const sessionsPerDay = 4;
     let chElement: HTMLCanvasElement;
 
-    onMount(() => {
-        new Chart(chElement, {
+    Chart.register(LinearScale, TimeSeriesScale, BarController, BarElement, PointElement, Tooltip, Legend);
+    let chart: Chart<"bar", (number[] | undefined)[], number> | undefined;
+    const initChart = (): Chart<"bar", (number[] | undefined)[], number> => {
+        return new Chart(chElement, {
             type: "bar",
             data: {
-                labels: data1.map(row => row.date),
-                datasets: [
-                    {
-                        label: "fa",
-                        backgroundColor: "blue",
-                        data: data1.map(row => row.time),
-                    },
-                    {
-                        label: "ja",
-                        backgroundColor: "red",
-                        data: data2.map(row => row.time)
-                    }
-                ]
+                labels: [],
+                datasets: []
             },
             options: {
                 responsive: true,
@@ -131,6 +100,37 @@
                 }
             },
         });
+    }
+
+    let data: dataUser[] = [];
+    dataStore.subscribe(async (value: dataUser[]) => {
+        if (value) {
+            data = value;
+
+            if (!chart) {
+                chart = initChart();
+            }
+
+            let last: number;
+            chart.data.labels = data[0].sessions.map((row: dataUserSession) => {
+                if (row.date) {
+                    last = row.date * 1000
+                    return last;
+                } else {
+                    return last;
+                }
+            });
+
+            for (const u of data) {
+                chart.data.datasets.push({
+                    label: u.name,
+                    backgroundColor: getRandomColor(),
+                    data: u.sessions.map((row: dataUserSession) => row.time)
+                });
+            }
+
+            chart.update();
+        }
     });
 </script>
 

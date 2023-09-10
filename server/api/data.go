@@ -18,9 +18,8 @@ type DataUser struct {
 
 type DataUserSession struct {
 	Date   int64  `json:"date,omitempty"`
+	Time   []int  `json:"time,omitempty"`
 	Device string `json:"device,omitempty"`
-	From   int    `json:"from,omitempty"`
-	To     int    `json:"to,omitempty"`
 }
 
 func Data(c *fiber.Ctx) error {
@@ -84,7 +83,7 @@ func Data(c *fiber.Ctx) error {
 						sessionsPerDay = searchSessionsPerDay
 					}
 
-					searchList = append(searchList, DataUserSession{Date: date.Unix(), Device: fileP[2], From: int(timeStart.Unix() / 60), To: int(timeEnd.Unix() / 60)})
+					searchList = append(searchList, DataUserSession{Date: date.Unix(), Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
 					search = false
 				}
 			}

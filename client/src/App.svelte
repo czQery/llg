@@ -1,9 +1,11 @@
 <script lang="ts">
-    import Graph from "./lib/Graph.svelte";
-    import Details from "./lib/Details.svelte";
-    import {sleep} from "./helper";
+    import {sleep} from "./lib/ts/helper";
+    import Details from "./lib/components/Details.svelte";
+    import Graph from "./lib/components/Graph.svelte";
+    import {loadData} from "./lib/ts/api";
 
     const init = async () => {
+        loadData().then();
         setTimeout(() => {
             document.getElementById("loading")!.style.display = "none";
             document.getElementById("app")!.style.display = "block";
