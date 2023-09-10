@@ -1,9 +1,13 @@
 <script lang="ts">
     import Graph from "./lib/Graph.svelte";
     import Details from "./lib/Details.svelte";
+    import {sleep} from "./helper";
 
-    /*const init = async () => {
-
+    const init = async () => {
+        setTimeout(() => {
+            document.getElementById("loading")!.style.display = "none";
+            document.getElementById("app")!.style.display = "block";
+        }, 50)
     }
 
     (async () => {
@@ -14,7 +18,7 @@
             }
             await sleep(50);
         }
-    })();*/
+    })();
 </script>
 
 <main>

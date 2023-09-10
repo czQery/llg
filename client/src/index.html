@@ -88,6 +88,56 @@
             width: calc(100% - 40px);
         }
 
+        #loading {
+            height: 100svh;
+            width: 100%;
+        }
+
+        #loading div {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #loading div svg {
+            animation: rotate 1.5s cubic-bezier(.79, .14, .15, .86) infinite;
+            width: 150px;
+            height: 150px;
+            display: block;
+            margin: 0 auto;
+            color: #FFF;
+        }
+
+        #loading div noscript {
+            margin: 40px 0 0 0;
+            display: block;
+            color: #ffffff;
+            font-size: 30px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        @keyframes rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #app {
+            display: none;
+            animation: 1s app-blend cubic-bezier(.08, .82, .17, 1);
+        }
+
+        @keyframes app-blend {
+            from {
+                opacity: 20%;
+            }
+            to {
+                opacity: 100%;
+            }
+        }
+
         @media screen and (max-width: 519px) {
             dialog {
                 max-width: calc(100% - 20px);
@@ -108,6 +158,19 @@
     </style>
 </head>
 <body>
+<div id="loading">
+    <div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             class="lucide lucide-refresh-cw">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+            <path d="M21 3v5h-5"/>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+            <path d="M8 16H3v5"/>
+        </svg>
+        <noscript>This site requires Javascript enabled in your browser!</noscript>
+    </div>
+</div>
 <div id="app"></div>
 <script type="module" src="main.ts"></script>
 </body>
