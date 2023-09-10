@@ -1,4 +1,4 @@
-# Login-Logoff-Graph (LLG)
+# Login/Logoff Graph (LLG)
 
 ### Log format
 

@@ -13,8 +13,11 @@
     import {formatTime, getRandomColor} from "../ts/helper";
     import {dataStore, type dataUser, type dataUserSession} from "../ts/api";
 
-    const sessionsPerDay = 4;
+    export let aspElement: HTMLSpanElement;
     let chElement: HTMLCanvasElement;
+    let data: dataUser[] = [];
+    const sessionsPerDay = 4;
+
 
     Chart.register(LinearScale, TimeSeriesScale, BarController, BarElement, PointElement, Tooltip, Legend);
     let chart: Chart<"bar", (number[] | undefined)[], number> | undefined;
@@ -30,13 +33,26 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        display: true
+                        display: true,
+                        labels: {
+                            font: {
+                                size: 15
+                            }
+                        },
                     },
                     title: {
                         display: false
                     },
                     tooltip: {
                         yAlign: "bottom",
+                        //@ts-ignore
+                        events: ["click", "touchstart"],
+                        titleFont: {
+                            size: 15
+                        },
+                        bodyFont: {
+                            size: 15
+                        },
                         callbacks: {
                             title: (items) => {
                                 //@ts-ignore
@@ -64,7 +80,15 @@
                                     }
                                 }
 
-                                return "User: " + items[0]["dataset"]["label"] + "\nSession: " + session.toString() + "h\nToday: " + today.toString() + "h";
+                                let raw = data.find((u) => u.name == items[0]["dataset"]["label"])?.sessions[items[0]["dataIndex"]]
+                                let device: string = "";
+
+                                if (raw && raw.device) {
+                                    aspElement.innerText = "//" + raw.device.split(" ")[0] + "/c$";
+                                    device = "\nPC: " + raw.device.split(" ")[0] + "\nIP: " + raw.device.split(" ")[1].replace("(", "").replace(")", "") + "\n";
+                                }
+
+                                return "User: " + items[0]["dataset"]["label"] + device + "\nSession: " + session.toFixed(1).toString() + "h\nToday: " + today.toFixed(1).toString() + "h";
                             },
                             label: (item) => {
                                 //@ts-ignore
@@ -102,7 +126,6 @@
         });
     }
 
-    let data: dataUser[] = [];
     dataStore.subscribe(async (value: dataUser[]) => {
         if (value) {
             data = value;

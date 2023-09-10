@@ -4,6 +4,8 @@
     import Graph from "./lib/components/Graph.svelte";
     import {loadData} from "./lib/ts/api";
 
+    let aspTextElement: HTMLSpanElement;
+
     const init = async () => {
         loadData().then();
         setTimeout(() => {
@@ -27,18 +29,16 @@
     <header id="header">
         <h1>Login/Logoff Graph</h1>
         <form>
-            <div>
-                <label for="month">Month:</label>
-                <input type="month" id="month" name="month" min="2020-00" value="2023-01"/>
-            </div>
-            <div>
-                <button>render</button>
-            </div>
+            <label for="month">Month:</label>
+            <input type="month" id="month" name="month" min="2020-00" value="2023-01"/>
+            <button>render</button>
         </form>
+        <span id="header-asp-text" bind:this={aspTextElement}></span>
+        <button id="header-asp-btn" on:click={() => {navigator.clipboard.writeText(aspTextElement.innerText)}}>copy admin path</button>
     </header>
     <div id="wrapper">
         <Details/>
-        <Graph/>
+        <Graph aspElement={aspTextElement}/>
     </div>
     <footer id="footer">
         <div style="background-color: blue; width: 60%">30h</div>
@@ -54,28 +54,26 @@
         grid-column: 1/3;
         grid-row: 1/2;
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr;
+        grid-template-rows: 1fr min-content;
         overflow: hidden;
-        margin-bottom: 20px;
+        gap: 10px;
     }
 
     #header h1 {
         color: #FFF;
+        font-size: 35px;
+        font-weight: 600;
         margin: 0;
     }
 
     #header form {
+        grid-column: 1/2;
+        grid-row: 2/3;
         display: flex;
-        flex-direction: column;
         gap: 10px;
         color: #FFF;
         text-align: right;
-    }
-
-    #header form div {
-        display: flex;
-        justify-content: end;
-        gap: 10px;
+        margin-bottom: 20px;
     }
 
     #header form label {
@@ -96,9 +94,29 @@
     #header form button {
         height: 30px;
         width: 140px;
-        background-color: #3b60dc;
+        background-color: var(--cb);
         font-size: 18px;
         color: #FFF;
+    }
+
+    #header-asp-text {
+        color: white;
+        text-align: right;
+        grid-column: 2/3;
+        grid-row: 1/2;
+        font-size: 25px;
+        margin: auto 0 0 auto;
+    }
+
+    #header-asp-btn {
+        grid-column: 2/3;
+        grid-row: 2/3;
+        height: 30px;
+        width: 190px;
+        background-color: var(--cb);
+        font-size: 18px;
+        color: #FFF;
+        margin: 0 0 0 auto;
     }
 
     #wrapper {

@@ -34,7 +34,6 @@
                 <th>Average hours</th>
                 <th>Month sessions</th>
                 <th>Average sessions</th>
-                <th>File share</th>
             </tr>
             <tr>
                 <td>fa</td>
@@ -42,7 +41,6 @@
                 <td>8h</td>
                 <td>42</td>
                 <td>2</td>
-                <td>\\PC1\c$</td>
             </tr>
             <tr>
                 <td>ja</td>
@@ -50,7 +48,6 @@
                 <td>6.5h</td>
                 <td>37</td>
                 <td>1.5</td>
-                <td>\\PC2\c$</td>
             </tr>
         </table>
     </dialog>
@@ -61,7 +58,7 @@
     #details-btn {
         position: absolute;
         right: 10px;
-        background-color: #3b60dc;
+        background-color: var(--cb);
         color: #FFF;
         padding: 3px 5px;
     }
