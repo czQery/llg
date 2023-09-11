@@ -84,7 +84,7 @@
                                 let device: string = "";
 
                                 if (raw && raw.device) {
-                                    aspElement.innerText = "//" + raw.device.split(" ")[0] + "/c$";
+                                    aspElement.innerText = "\\\\" + raw.device.split(" ")[0] + "\\c$";
                                     device = "\nPC: " + raw.device.split(" ")[0] + "\nIP: " + raw.device.split(" ")[1].replace("(", "").replace(")", "") + "\n";
                                 }
 

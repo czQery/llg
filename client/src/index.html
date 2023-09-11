@@ -79,6 +79,10 @@
             filter: var(--hover);
         }
 
+        button:active {
+            animation: reverse click-scale 100ms;
+        }
+
         main {
             margin: 20px;
             padding: 0;
@@ -120,15 +124,21 @@
             font-weight: 600;
         }
 
+        #app {
+            display: none;
+            animation: 1s app-blend cubic-bezier(.08, .82, .17, 1);
+        }
+
         @keyframes rotate {
             100% {
                 transform: rotate(360deg);
             }
         }
 
-        #app {
-            display: none;
-            animation: 1s app-blend cubic-bezier(.08, .82, .17, 1);
+        @keyframes click-scale {
+            to {
+                transform: scale(110%);
+            }
         }
 
         @keyframes app-blend {
