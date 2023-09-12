@@ -52,12 +52,15 @@
         grid-column: 1/3;
         grid-row: 1/2;
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr min-content;
+        grid-template-rows: 1fr 30px;
         overflow: hidden;
         gap: 10px;
+        padding: 0 0 20px 0;
     }
 
     #header h1 {
+        grid-column: 1/2;
+        grid-row: 1/2;
         color: #FFF;
         font-size: 35px;
         font-weight: 600;
@@ -71,7 +74,6 @@
         gap: 10px;
         color: #FFF;
         text-align: right;
-        margin-bottom: 20px;
     }
 
     #header form label {
@@ -91,7 +93,8 @@
 
     #header form button {
         height: 30px;
-        width: 140px;
+        max-width: 140px;
+        width: 100%;
         background-color: var(--cb);
         font-size: 18px;
         color: #FFF;
@@ -104,17 +107,20 @@
         grid-row: 1/2;
         font-size: 25px;
         margin: auto 0 0 auto;
+        overflow: hidden;
     }
 
     #header-asp-btn {
         grid-column: 2/3;
         grid-row: 2/3;
         height: 30px;
-        width: 190px;
+        max-width: 190px;
+        width: 100%;
         background-color: var(--cb);
         font-size: 18px;
         color: #FFF;
         margin: 0 0 0 auto;
+        white-space: nowrap;
     }
 
     #wrapper {
@@ -126,5 +132,45 @@
         background-color: #FFF;
         border-radius: var(--rad) var(--rad) 0 0;
         box-shadow: var(--shadow);
+    }
+
+    @media screen and (max-width: 809px) {
+        #header {
+            grid-template-columns: 1fr max-content;
+            grid-template-rows: 1fr repeat(2, 30px);
+        }
+
+        #header h1 {
+            grid-column: 1/3;
+            grid-row: 1/2;
+        }
+
+        #header form {
+            grid-column: 1/3;
+            grid-row: 2/3;
+            display: flex;
+            gap: 10px;
+            color: #FFF;
+            text-align: right;
+        }
+
+        #header-asp-text {
+            grid-column: 1/2;
+            grid-row: 3/4;
+            text-align: left;
+            margin: 0;
+        }
+
+        #header-asp-btn {
+            grid-column: 2/3;
+            grid-row: 3/4;
+            margin: 0;
+        }
+    }
+
+    @media screen and (max-width: 519px) {
+        #header {
+            padding: 0 0 10px 0;
+        }
     }
 </style>

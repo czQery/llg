@@ -27,6 +27,7 @@
         display: flex;
         grid-column: 1/3;
         grid-row: 3/4;
+        height: 30px;
         padding: 0 10px 10px 10px;
         background-color: #FFF;
         border-radius: 0 0 var(--rad) var(--rad);
