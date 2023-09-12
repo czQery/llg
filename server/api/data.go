@@ -4,6 +4,7 @@ import (
 	"github.com/czQery/llg/tl"
 	"github.com/gofiber/fiber/v2"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -33,6 +34,7 @@ func Data(c *fiber.Ctx) error {
 		dir            = os.Args[1]
 		users          []DataUser
 		sessionsPerDay = 1
+		searchDateList = make(map[string]int64)
 	)
 
 	files, err := os.ReadDir(dir)
@@ -54,7 +56,7 @@ func Data(c *fiber.Ctx) error {
 				search               bool
 				searchName           string
 				searchLogin          []string
-				searchList           []DataUserSession
+				searchSessionList    []DataUserSession
 				searchSessionsPerDay int
 			)
 
@@ -80,8 +82,8 @@ func Data(c *fiber.Ctx) error {
 					tl.Log("API", "Data - session: "+fileP[1]+" from: "+strconv.Itoa(int(timeStart.Unix()/60))+" to: "+strconv.Itoa(int(timeEnd.Unix()/60)), "debug")
 
 					// count number of session in same day for this day
-					for i := len(searchList) - 1; i >= 0; i-- {
-						if searchList[i].Date == date.Unix() {
+					for i := len(searchSessionList) - 1; i >= 0; i-- {
+						if searchSessionList[i].Date == date.Unix() {
 							searchSessionsPerDay = searchSessionsPerDay + 1
 						}
 					}
@@ -89,11 +91,12 @@ func Data(c *fiber.Ctx) error {
 						sessionsPerDay = searchSessionsPerDay
 					}
 
-					searchList = append(searchList, DataUserSession{Date: date.Unix(), Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
+					searchSessionList = append(searchSessionList, DataUserSession{Date: date.Unix(), Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
+					searchDateList[searchLogin[3]] = date.Unix()
 					search = false
 				}
 			}
-			users = append(users, DataUser{Name: searchName, Sessions: searchList})
+			users = append(users, DataUser{Name: searchName, Sessions: searchSessionList})
 		}
 	}
 
@@ -129,7 +132,7 @@ func Data(c *fiber.Ctx) error {
 				if sDayCount <= sessionsPerDay {
 					users[u].Sessions = append(users[u].Sessions, DataUserSession{})
 					copy(users[u].Sessions[si+1:], users[u].Sessions[si:])
-					users[u].Sessions[si] = DataUserSession{}
+					users[u].Sessions[si] = DataUserSession{Date: sDay, Time: []int{0, 0}}
 				} else {
 					sDay = 0
 				}
@@ -145,5 +148,23 @@ func Data(c *fiber.Ctx) error {
 		}
 	}
 
-	return c.Status(200).JSON(Response{Data: DataSum{Dates: []int64{}, Users: users, SessionsPerDay: sessionsPerDay}})
+	// format dates
+	var (
+		dateList     []int64
+		dateListKeys = make([]string, 0, len(searchDateList))
+	)
+	for key := range searchDateList {
+		dateListKeys = append(dateListKeys, key)
+	}
+	sort.SliceStable(dateListKeys, func(i, j int) bool {
+		return searchDateList[dateListKeys[i]] < searchDateList[dateListKeys[j]]
+	})
+
+	for _, k := range dateListKeys {
+		for i := 0; i < sessionsPerDay; i++ {
+			dateList = append(dateList, searchDateList[k])
+		}
+	}
+
+	return c.Status(200).JSON(Response{Data: DataSum{Dates: dateList, Users: users, SessionsPerDay: sessionsPerDay}})
 }

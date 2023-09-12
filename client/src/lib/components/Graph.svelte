@@ -86,6 +86,8 @@
                 scales: {
                     x: {
                         type: "timeseries",
+                        //@ts-ignore
+                        parsing: false,
                         stacked: false,
                         time: {
                             unit: "day"
@@ -120,7 +122,11 @@
                 chart = initChart();
             }
 
-            let last: number;
+            chart.data.labels = data.dates.map((d: number) => {
+                return d * 1000;
+            });
+
+            /*let last: number;
             chart.data.labels = data.users[0].sessions.map((row: dataUserSession) => {
                 if (row.date) {
                     last = row.date * 1000
@@ -128,7 +134,7 @@
                 } else {
                     return last;
                 }
-            });
+            });*/
 
             let uSums: sessionSum[] = [];
 
