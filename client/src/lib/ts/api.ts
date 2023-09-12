@@ -1,5 +1,6 @@
-import {type Writable, writable} from "svelte/store";
+
 import {isJSON, isOK} from "./helper";
+import {dataStore} from "./global";
 
 export interface dataSum {
     dates: number[]
@@ -17,8 +18,6 @@ export interface dataUserSession {
     device: string | undefined
     time: number[] | undefined
 }
-
-export const dataStore: Writable<dataSum> = writable();
 export const loadData = async () => {
     const response = await fetch(import.meta.env.VITE_APP_API + "api/data", {
         credentials: "include"

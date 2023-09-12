@@ -3,6 +3,7 @@
     import Details from "./lib/components/Details.svelte";
     import Graph from "./lib/components/Graph.svelte";
     import {loadData} from "./lib/ts/api";
+    import SumGraph from "./lib/components/SumGraph.svelte";
 
     let aspTextElement: HTMLSpanElement;
 
@@ -40,10 +41,7 @@
         <Details/>
         <Graph aspElement={aspTextElement}/>
     </div>
-    <footer id="footer">
-        <div style="background-color: blue; width: 60%">30h</div>
-        <div style="background-color: red; width: 40%">20h</div>
-    </footer>
+    <SumGraph/>
     <div id="app-end" style="display: block;opacity: 0;width: 100%;height: 0px;position: relative;"></div>
 </main>
 
@@ -128,23 +126,5 @@
         background-color: #FFF;
         border-radius: var(--rad) var(--rad) 0 0;
         box-shadow: var(--shadow);
-    }
-
-    #footer {
-        display: flex;
-        grid-column: 1/3;
-        grid-row: 3/4;
-        padding: 0 10px 10px 10px;
-        background-color: #FFF;
-        border-radius: 0 0 var(--rad) var(--rad);
-        box-shadow: var(--shadow);
-    }
-
-    #footer div {
-        height: 20px;
-        display: inline-block;
-        text-align: center;
-        color: white;
-        /*border-radius: var(--rad);*/
     }
 </style>

@@ -15,10 +15,19 @@ export const formatTime = (value: number): string => {
 
     return hs + ":" + ms;
 }
+
+export const formatDuration = (minutes: number): string => {
+    if (minutes >= 60) {
+        return (minutes / 60).toFixed(1).replace(".0", "") + "h";
+    } else {
+        return minutes.toFixed(1).replace(".0", "") + "m";
+    }
+}
+
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export const getRandomColor = (): string => {
-    return "#"+Math.floor(Math.random() * 16777215).toString(16);
+    return "#" + Math.floor(Math.random() * 16777215).toString(16);
 }
 
 export const isJSON = (response: Response): boolean => {

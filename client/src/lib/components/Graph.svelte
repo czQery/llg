@@ -10,8 +10,9 @@
         TimeSeriesScale,
         Tooltip
     } from "chart.js";
-    import {formatTime, getRandomColor} from "../ts/helper";
-    import {dataStore, type dataSum, type dataUser, type dataUserSession} from "../ts/api";
+    import {formatDuration, formatTime, getRandomColor} from "../ts/helper";
+    import {type dataSum, type dataUser, type dataUserSession} from "../ts/api";
+    import {dataStore, sessionsSums, type sessionSum} from "../ts/global";
 
     export let aspElement: HTMLSpanElement;
     let chElement: HTMLCanvasElement;
@@ -54,10 +55,8 @@
                         callbacks: {
                             title: (items) => {
                                 //@ts-ignore
-                                let session: number = (items[0]["raw"][1] - items[0]["raw"][0]) / 60;
-                                let sessionUnit: string = "h";
+                                let session: number = items[0]["raw"][1] - items[0]["raw"][0];
                                 let today = 0;
-                                let todayUnit: string = "h";
 
                                 let startIndex = items[0]["dataIndex"] - (items[0]["dataIndex"] % data.sessionsPerDay);
 
@@ -65,17 +64,7 @@
                                     if (!items[0]["dataset"]["data"][startIndex + i]) continue
 
                                     //@ts-ignore
-                                    today = today + ((items[0]["dataset"]["data"][startIndex + i][1] - items[0]["dataset"]["data"][startIndex + i][0]) / 60);
-                                }
-
-                                if (session < 1) {
-                                    session = session * 60;
-                                    sessionUnit = "m";
-                                }
-
-                                if (today < 1) {
-                                    today = today * 60;
-                                    todayUnit = "m";
+                                    today = today + (items[0]["dataset"]["data"][startIndex + i][1] - items[0]["dataset"]["data"][startIndex + i][0]);
                                 }
 
                                 let raw = data.users.find((u: dataUser) => u.name == items[0]["dataset"]["label"])?.sessions[items[0]["dataIndex"]]
@@ -85,7 +74,7 @@
                                     device = "\nPC: " + raw.device.split(" ")[0] + "\nIP: " + raw.device.split(" ")[1].replace("(", "").replace(")", "") + "\n";
                                 }
 
-                                return "User: " + items[0]["dataset"]["label"] + device + "\nSession: " + session.toFixed(1).replace(".0", "") + sessionUnit + "\nToday: " + today.toFixed(1).replace(".0", "") + todayUnit;
+                                return "User: " + items[0]["dataset"]["label"] + device + "\nSession: " + formatDuration(session) + "\nToday: " + formatDuration(today);
                             },
                             label: (item) => {
                                 //@ts-ignore
@@ -141,15 +130,30 @@
                 }
             });
 
+            let uSums: sessionSum[] = [];
+
             for (const u of data.users) {
+                let color: string = getRandomColor();
+
                 chart.data.datasets.push({
                     label: u.name,
-                    backgroundColor: getRandomColor(),
+                    backgroundColor: color,
                     data: u.sessions.map((row: dataUserSession) => row.time)
                 });
+
+                let uSum = 0;
+                for (const s of u.sessions) {
+                    if (!s.time) continue;
+
+                    uSum = uSum + (s.time[1] - s.time[0]);
+                }
+
+                uSums.push({color: color, sum: uSum});
             }
 
             chart.update();
+
+            sessionsSums.set(uSums);
         }
     });
 </script>
