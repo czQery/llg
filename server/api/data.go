@@ -11,6 +11,12 @@ import (
 
 const timeLayout = "02.01.2006-15:04"
 
+type DataSum struct {
+	Dates          []int64    `json:"dates"`
+	Users          []DataUser `json:"users"`
+	SessionsPerDay int        `json:"sessionsPerDay"`
+}
+
 type DataUser struct {
 	Name     string            `json:"name"`
 	Sessions []DataUserSession `json:"sessions"`
@@ -139,5 +145,5 @@ func Data(c *fiber.Ctx) error {
 		}
 	}
 
-	return c.Status(200).JSON(Response{Data: users})
+	return c.Status(200).JSON(Response{Data: DataSum{Dates: []int64{}, Users: users, SessionsPerDay: sessionsPerDay}})
 }

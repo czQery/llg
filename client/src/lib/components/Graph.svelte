@@ -11,13 +11,11 @@
         Tooltip
     } from "chart.js";
     import {formatTime, getRandomColor} from "../ts/helper";
-    import {dataStore, type dataUser, type dataUserSession} from "../ts/api";
+    import {dataStore, type dataSum, type dataUser, type dataUserSession} from "../ts/api";
 
     export let aspElement: HTMLSpanElement;
     let chElement: HTMLCanvasElement;
-    let data: dataUser[] = [];
-    const sessionsPerDay = 4;
-
+    let data: dataSum = {};
 
     Chart.register(LinearScale, TimeSeriesScale, BarController, BarElement, PointElement, Tooltip, Legend);
     let chart: Chart<"bar", (number[] | undefined)[], number> | undefined;
@@ -57,38 +55,37 @@
                             title: (items) => {
                                 //@ts-ignore
                                 let session: number = (items[0]["raw"][1] - items[0]["raw"][0]) / 60;
+                                let sessionUnit: string = "h";
                                 let today = 0;
+                                let todayUnit: string = "h";
 
-                                for (let i = 0; i < items[0]["dataset"]["data"].length; i++) {
-                                    if (!items[0]["dataset"]["data"][i]) {
-                                        continue;
-                                    }
+                                let startIndex = items[0]["dataIndex"] - (items[0]["dataIndex"] % data.sessionsPerDay);
+
+                                for (let i = 0; i < data.sessionsPerDay; i++) {
+                                    if (!items[0]["dataset"]["data"][startIndex + i]) continue
 
                                     //@ts-ignore
-                                    if (items[0]["dataset"]["data"][i][0] === items[0]["raw"][0] && items[0]["dataset"]["data"][i][1] === items[0]["raw"][1]) {
-
-                                        if (i % sessionsPerDay) {
-                                            //@ts-ignore
-                                            if (items[0]["dataset"]["data"][i - 1]) today = (items[0]["dataset"]["data"][i - 1][1] - items[0]["dataset"]["data"][i - 1][0]) / 60
-                                        } else {
-                                            //@ts-ignore
-                                            if (items[0]["dataset"]["data"][i + 1]) today = (items[0]["dataset"]["data"][i + 1][1] - items[0]["dataset"]["data"][i + 1][0]) / 60
-                                        }
-
-                                        today = today + session;
-                                        break;
-                                    }
+                                    today = today + ((items[0]["dataset"]["data"][startIndex + i][1] - items[0]["dataset"]["data"][startIndex + i][0]) / 60);
                                 }
 
-                                let raw = data.find((u) => u.name == items[0]["dataset"]["label"])?.sessions[items[0]["dataIndex"]]
-                                let device: string = "";
+                                if (session < 1) {
+                                    session = session * 60;
+                                    sessionUnit = "m";
+                                }
 
+                                if (today < 1) {
+                                    today = today * 60;
+                                    todayUnit = "m";
+                                }
+
+                                let raw = data.users.find((u: dataUser) => u.name == items[0]["dataset"]["label"])?.sessions[items[0]["dataIndex"]]
+                                let device: string = "";
                                 if (raw && raw.device) {
                                     aspElement.innerText = "\\\\" + raw.device.split(" ")[0] + "\\c$";
                                     device = "\nPC: " + raw.device.split(" ")[0] + "\nIP: " + raw.device.split(" ")[1].replace("(", "").replace(")", "") + "\n";
                                 }
 
-                                return "User: " + items[0]["dataset"]["label"] + device + "\nSession: " + session.toFixed(1).toString() + "h\nToday: " + today.toFixed(1).toString() + "h";
+                                return "User: " + items[0]["dataset"]["label"] + device + "\nSession: " + session.toFixed(1).replace(".0", "") + sessionUnit + "\nToday: " + today.toFixed(1).replace(".0", "") + todayUnit;
                             },
                             label: (item) => {
                                 //@ts-ignore
@@ -126,7 +123,7 @@
         });
     }
 
-    dataStore.subscribe(async (value: dataUser[]) => {
+    dataStore.subscribe(async (value: dataSum) => {
         if (value) {
             data = value;
 
@@ -135,7 +132,7 @@
             }
 
             let last: number;
-            chart.data.labels = data[0].sessions.map((row: dataUserSession) => {
+            chart.data.labels = data.users[0].sessions.map((row: dataUserSession) => {
                 if (row.date) {
                     last = row.date * 1000
                     return last;
@@ -144,7 +141,7 @@
                 }
             });
 
-            for (const u of data) {
+            for (const u of data.users) {
                 chart.data.datasets.push({
                     label: u.name,
                     backgroundColor: getRandomColor(),
