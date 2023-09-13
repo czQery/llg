@@ -126,29 +126,25 @@
                 return d * 1000;
             });
 
-            /*let last: number;
-            chart.data.labels = data.users[0].sessions.map((row: dataUserSession) => {
-                if (row.date) {
-                    last = row.date * 1000
-                    return last;
-                } else {
-                    return last;
-                }
-            });*/
-
             let uSums: sessionSum[] = [];
 
-            for (const u of data.users) {
+            for (let i = 0; i < data.users.length; i++) {
                 let color: string = getRandomColor();
+                let hidden = false;
+
+                if (i > 2) {
+                    hidden = true;
+                }
 
                 chart.data.datasets.push({
-                    label: u.name,
+                    label: data.users[i].name,
                     backgroundColor: color,
-                    data: u.sessions.map((row: dataUserSession) => row.time)
+                    data: data.users[i].sessions.map((row: dataUserSession) => row.time),
+                    hidden: hidden
                 });
 
                 let uSum = 0;
-                for (const s of u.sessions) {
+                for (const s of data.users[i].sessions) {
                     if (!s.time) continue;
 
                     uSum = uSum + (s.time[1] - s.time[0]);
