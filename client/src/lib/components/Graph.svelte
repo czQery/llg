@@ -120,6 +120,8 @@
 
             if (!chart) {
                 chart = initChart();
+            } else {
+                chart.data.datasets = [];
             }
 
             chart.data.labels = data.dates.map((d: number) => {
@@ -154,7 +156,6 @@
             }
 
             chart.update();
-
             sessionsSums.set(uSums);
         }
     });

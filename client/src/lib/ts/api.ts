@@ -18,8 +18,8 @@ export interface dataUserSession {
     device: string | undefined
     time: number[] | undefined
 }
-export const loadData = async () => {
-    const response = await fetch(import.meta.env.VITE_APP_API + "api/data", {
+export const loadData = async (param: string) => {
+    const response = await fetch(import.meta.env.VITE_APP_API + "api/data"+param, {
         credentials: "include"
     });
 

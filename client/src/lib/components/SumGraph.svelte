@@ -5,9 +5,10 @@
     let sums: sessionSum[] = [];
     let sumsSum: number = 0;
 
-    sessionsSums.subscribe(async (value: number[]) => {
+    sessionsSums.subscribe(async (value: sessionSum[]) => {
         if (value) {
             sums = value;
+            sumsSum = 0;
         }
 
         for (const s of sums) {

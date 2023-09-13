@@ -1,18 +1,47 @@
 <script lang="ts">
-    import {sleep} from "./lib/ts/helper";
+    import {getDate, sleep} from "./lib/ts/helper";
     import Details from "./lib/components/Details.svelte";
     import Graph from "./lib/components/Graph.svelte";
     import {loadData} from "./lib/ts/api";
     import SumGraph from "./lib/components/SumGraph.svelte";
 
     let aspTextElement: HTMLSpanElement;
+    let formMonthElement: HTMLInputElement;
 
     const init = async () => {
-        loadData().then();
+        let urlParams = new URLSearchParams(window.location.search);
+        let urlDate = urlParams.get("date");
+        if (urlDate) {
+            let date = Date.parse(urlDate);
+            if (date) {
+                formMonthElement.value = urlDate;
+            }
+        } else {
+            formMonthElement.value = getDate(new Date());
+        }
+
+        loadData("?date="+formMonthElement.value).then();
+
         setTimeout(() => {
             document.getElementById("loading")!.style.display = "none";
             document.getElementById("app")!.style.display = "block";
         }, 50)
+    }
+
+    const render = async () => {
+        let dateP = Date.parse(formMonthElement.value);
+        if (!dateP) {
+            formMonthElement.value = getDate(new Date());
+            return;
+        }
+
+        let date = new Date(dateP)
+
+        const url = new URL(window.location.toString());
+        url.searchParams.set("date", getDate(date));
+        window.history.pushState(null, "", url.toString());
+
+        loadData("?date="+formMonthElement.value).then();
     }
 
     (async () => {
@@ -31,11 +60,13 @@
         <h1>Login/Logoff Graph</h1>
         <form>
             <label for="month">Month:</label>
-            <input type="month" id="month" name="month" min="2020-00" value="2023-01"/>
-            <button>render</button>
+            <input type="month" id="month" name="month" min="2000-00" bind:this={formMonthElement}/>
+            <button on:click|preventDefault={render}>render</button>
         </form>
         <span id="header-asp-text" bind:this={aspTextElement}></span>
-        <button id="header-asp-btn" on:click={() => {navigator.clipboard.writeText(aspTextElement.innerText)}}>copy admin path</button>
+        <button id="header-asp-btn" on:click={() => {navigator.clipboard.writeText(aspTextElement.innerText)}}>copy
+            admin path
+        </button>
     </header>
     <div id="wrapper">
         <Details/>

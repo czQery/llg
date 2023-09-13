@@ -24,6 +24,10 @@ export const formatDuration = (minutes: number): string => {
     }
 }
 
+export const getDate = (date: Date): string => {
+    return date.getFullYear().toString() + "-" + ((date.getMonth() + 1).toString().length == 1 ? "0" + (date.getMonth() + 1).toString() : (date.getMonth() + 1).toString())
+}
+
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export const getRandomColor = (): string => {
