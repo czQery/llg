@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-const timeLayout = "02.01.2006-15:04"
-
 type DataSum struct {
 	Dates          []int64    `json:"dates"`
 	Users          []DataUser `json:"users"`
@@ -29,6 +27,9 @@ type DataUserSession struct {
 	Device string `json:"device,omitempty"`
 }
 
+const timeLayout = "02.01.2006-15:04"
+const timeLayoutParam = "2006-01"
+
 func Data(c *fiber.Ctx) error {
 	var (
 		dir                = os.Args[1]
@@ -37,7 +38,20 @@ func Data(c *fiber.Ctx) error {
 		dataSessionsPerDay = 1
 		searchDateList     = make(map[string]int64)
 		searchDateListKeys = make([]string, 0, len(searchDateList))
+
+		dateParam time.Time
 	)
+
+	if c.Query("date") != "" {
+		var err error
+		dateParam, err = time.Parse(timeLayoutParam, c.Query("date"))
+		if err != nil {
+			dateParam = time.Now()
+		}
+
+	} else {
+		dateParam = time.Now()
+	}
 
 	// debug
 	dbgStart := time.Now()
@@ -84,9 +98,23 @@ func Data(c *fiber.Ctx) error {
 				// mark session end
 				if fileP[0] == "logoff" && search {
 					date, _ := time.Parse(timeLayout, searchLogin[3]+"-00:00")
+					dateOver, _ := time.Parse(timeLayout, fileP[3]+"-00:00")
 
 					timeStart, _ := time.Parse(timeLayout, "01.01.1970-"+searchLogin[4])
 					timeEnd, _ := time.Parse(timeLayout, "01.01.1970-"+fileP[4])
+
+					// date sanity check
+					if date.Unix() < 0 {
+						tl.Log("API", "Data - session: "+fileP[1]+" invalid date: "+searchLogin[3], "warn")
+						search = false
+						continue
+					}
+
+					// selected month check
+					if date.Year() != dateParam.Year() || date.Month() != dateParam.Month() || dateOver.Year() != dateParam.Year() || dateOver.Month() != dateParam.Month() {
+						search = false
+						continue
+					}
 
 					// count number of session in same day for this day
 					for i := len(searchSessionList) - 1; i >= 0; i-- {
@@ -98,17 +126,8 @@ func Data(c *fiber.Ctx) error {
 						dataSessionsPerDay = searchSessionsPerDay
 					}
 
-					// date sanity check
-					if date.Unix() < 0 {
-						tl.Log("API", "Data - session: "+fileP[1]+" invalid date: "+searchLogin[3], "warn")
-						search = false
-						continue
-					}
-
 					// over midnight check
 					if timeStart.Unix() > timeEnd.Unix() {
-						dateOver, _ := time.Parse(timeLayout, fileP[3]+"-00:00")
-
 						searchDateList[searchLogin[3]] = date.Unix()
 						searchDateList[fileP[3]] = dateOver.Unix()
 
@@ -124,7 +143,9 @@ func Data(c *fiber.Ctx) error {
 					search = false
 				}
 			}
-			dataUsers = append(dataUsers, DataUser{Name: searchName, Sessions: searchSessionList})
+			if len(searchSessionList) > 0 {
+				dataUsers = append(dataUsers, DataUser{Name: searchName, Sessions: searchSessionList})
+			}
 		}
 	}
 

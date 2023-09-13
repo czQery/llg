@@ -116,12 +116,19 @@
 
     dataStore.subscribe(async (value: dataSum) => {
         if (value) {
+            if (!value.dates || !value.users) {
+                return;
+            }
+
             data = value;
 
             if (!chart) {
                 chart = initChart();
             } else {
                 chart.data.datasets = [];
+                if (chart.tooltip) {
+                    chart.tooltip.setActiveElements([], {x: 0, y: 0});
+                }
             }
 
             chart.data.labels = data.dates.map((d: number) => {
@@ -131,6 +138,10 @@
             let uSums: sessionSum[] = [];
 
             for (let i = 0; i < data.users.length; i++) {
+                if (!data.users[i].sessions) {
+                    continue;
+                }
+
                 let color: string = getRandomColor();
                 let hidden = false;
 

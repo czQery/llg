@@ -12,9 +12,9 @@
         let urlParams = new URLSearchParams(window.location.search);
         let urlDate = urlParams.get("date");
         if (urlDate) {
-            let date = Date.parse(urlDate);
-            if (date) {
-                formMonthElement.value = urlDate;
+            let dateP = Date.parse(urlDate);
+            if (dateP) {
+                formMonthElement.value = getDate(new Date(dateP));
             }
         } else {
             formMonthElement.value = getDate(new Date());
@@ -36,6 +36,8 @@
         }
 
         let date = new Date(dateP)
+
+        formMonthElement.value = getDate(date);
 
         const url = new URL(window.location.toString());
         url.searchParams.set("date", getDate(date));
