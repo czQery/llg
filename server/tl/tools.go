@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+var Build = "dev"
+
 func Log(prefix string, message string, messageType string) {
 	now := time.Now()
 

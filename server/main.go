@@ -8,6 +8,10 @@ import (
 )
 
 func main() {
+	tl.Log("main", "Login/Logoff Graph", "info")
+	tl.Log("main", "by: Štěpán Aubrecht", "info")
+	tl.Log("main", "build: "+tl.Build, "info")
+
 	tl.Log("fiber", "starting...", "info")
 
 	r := fiber.New(fiber.Config{
