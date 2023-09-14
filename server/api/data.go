@@ -59,7 +59,8 @@ func Data(c *fiber.Ctx) error {
 	// get files list
 	files, err := os.ReadDir(dir)
 	if err != nil {
-		tl.Log("readDir", err.Error(), "error")
+		tl.Log("API", "Data - readDir error: "+err.Error(), "error")
+		return c.Status(500).JSON(Response{Message: "unexpected internal error"})
 	}
 
 	// read all files in specified folder
@@ -67,7 +68,7 @@ func Data(c *fiber.Ctx) error {
 		if !file.IsDir() {
 			fileData, err := os.ReadFile(dir + file.Name())
 			if err != nil {
-				tl.Log("readFile", err.Error(), "error")
+				tl.Log("API", "Data - readFile error: "+err.Error(), "error")
 			}
 
 			var (

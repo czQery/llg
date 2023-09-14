@@ -24,6 +24,7 @@ func main() {
 	})
 
 	// API
+	r.Get("/api/info", api.Info)
 	r.Get("/api/data", api.Data)
 
 	// Static files
@@ -31,7 +32,7 @@ func main() {
 
 	// Default
 	r.Use(func(c *fiber.Ctx) error {
-		return c.Status(404).JSON(api.Response{Message: "Unknown endpoint!"})
+		return c.Status(404).JSON(api.Response{Message: "unknown endpoint"})
 	})
 
 	// Run
