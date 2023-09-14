@@ -10,13 +10,13 @@
         TimeSeriesScale,
         Tooltip
     } from "chart.js";
-    import {formatDuration, formatTime, getRandomColor} from "../ts/helper";
+    import {formatDate, formatDuration, formatTime, getRandomColor} from "../ts/helper";
     import {type dataSum, type dataUser, type dataUserSession} from "../ts/api";
     import {dataStore, sessionsSums, type sessionSum} from "../ts/global";
 
     export let aspElement: HTMLSpanElement;
     let chElement: HTMLCanvasElement;
-    let data: dataSum = {};
+    let data: dataSum = {dates: [], users: []};
 
     Chart.register(LinearScale, TimeSeriesScale, BarController, BarElement, PointElement, Tooltip, Legend);
     let chart: Chart<"bar", (number[] | undefined)[], number> | undefined;
@@ -55,16 +55,15 @@
                         callbacks: {
                             title: (items) => {
                                 //@ts-ignore
-                                let session: number = items[0]["raw"][1] - items[0]["raw"][0];
+                                let session: number = items[0]["raw"]["y"][1] - items[0]["raw"]["y"][0];
                                 let today = 0;
 
-                                let startIndex = items[0]["dataIndex"] - (items[0]["dataIndex"] % data.sessionsPerDay);
-
-                                for (let i = 0; i < data.sessionsPerDay; i++) {
-                                    if (!items[0]["dataset"]["data"][startIndex + i]) continue
-
+                                for (const d of items[0]["dataset"]["data"]) {
                                     //@ts-ignore
-                                    today = today + (items[0]["dataset"]["data"][startIndex + i][1] - items[0]["dataset"]["data"][startIndex + i][0]);
+                                    if (d["x"] == items[0]["raw"]["x"]) {
+                                        //@ts-ignore
+                                        today = today + (d["y"][1] - d["y"][0]);
+                                    }
                                 }
 
                                 let raw = data.users.find((u: dataUser) => u.name == items[0]["dataset"]["label"])?.sessions[items[0]["dataIndex"]]
@@ -78,23 +77,21 @@
                             },
                             label: (item) => {
                                 //@ts-ignore
-                                return formatTime(item["raw"][0]) + "-" + formatTime(item["raw"][1]);
+                                return formatTime(item["raw"]["y"][0]) + "-" + formatTime(item["raw"]["y"][1]);
                             },
                         }
                     }
                 },
                 scales: {
                     x: {
-                        type: "timeseries",
-                        //@ts-ignore
-                        parsing: false,
+                        type: "linear",
                         stacked: false,
-                        time: {
-                            unit: "day"
+                        ticks: {
+                            stepSize: 1,
+                            callback: (value) => {
+                                return formatDate((value as number));
+                            }
                         },
-                        grid: {
-                            lineWidth: 0.5,
-                        }
                     },
                     y: {
                         type: "linear",
@@ -131,9 +128,7 @@
                 }
             }
 
-            chart.data.labels = data.dates.map((d: number) => {
-                return d * 1000;
-            });
+            chart.data.labels = data.dates;
 
             let uSums: sessionSum[] = [];
 
@@ -152,7 +147,10 @@
                 chart.data.datasets.push({
                     label: data.users[i].name,
                     backgroundColor: color,
-                    data: data.users[i].sessions.map((row: dataUserSession) => row.time),
+                    //@ts-ignore
+                    data: data.users[i].sessions.map((row: dataUserSession) => {
+                        return {x: row.date, y: row.time}
+                    }),
                     hidden: hidden
                 });
 

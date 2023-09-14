@@ -5,7 +5,6 @@ import {dataStore} from "./global";
 export interface dataSum {
     dates: number[]
     users: dataUser[]
-    sessionsPerDay: number
 }
 
 export interface dataUser {

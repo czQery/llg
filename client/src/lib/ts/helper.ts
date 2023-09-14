@@ -16,6 +16,11 @@ export const formatTime = (value: number): string => {
     return hs + ":" + ms;
 }
 
+export const formatDate = (value: number): string => {
+    let date = new Date(value * 60 * 60 * 24 * 1000);
+    return date.getDate().toString()+"."+(date.getMonth()+1).toString();
+}
+
 export const formatDuration = (minutes: number): string => {
     if (minutes >= 60) {
         return (minutes / 60).toFixed(1).replace(".0", "") + "h";
