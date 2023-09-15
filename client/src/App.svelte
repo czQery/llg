@@ -84,9 +84,9 @@
                 <label for="users">Users:</label>
                 <MultiSelect id="users" on:change={render}
                              --sms-options-bg="#FFF"
-                             --sms-border="2px solid #FFF"
+                             --sms-border="1px solid #FFF"
                              --sms-border-radius="5px"
-                             --sms-focus-border="2px solid #3b60dc"
+                             --sms-focus-border="1px solid #3b60dc"
                              --sms-bg="#FFF"
                              --sms-text-color="#000"
                              allowUserOptions="append"
@@ -166,7 +166,7 @@
     #header form div input {
         height: 30px;
         width: 180px;
-        border: 2px solid #FFF;
+        border: 1px solid #FFF;
         font-size: 18px;
         border-radius: var(--rad);
         text-align: center;
@@ -174,7 +174,7 @@
     }
 
     #header form div input:focus {
-        border: 2px solid #3b60dc;
+        border: 1px solid #3b60dc;
     }
 
     #header-asp {
@@ -189,6 +189,7 @@
         color: white;
         text-align: right;
         font-size: 25px;
+        height: 30px;
         margin: auto 0 0 auto;
         overflow: hidden;
     }
@@ -228,17 +229,17 @@
 
     @media screen and (max-width: 809px) {
         #header {
-            grid-template-columns: 1fr max-content;
-            grid-template-rows: 1fr repeat(2, 30px);
+            grid-template-columns: 1fr;
+            grid-template-rows: min-content repeat(2, 70px);
         }
 
         #header h1 {
-            grid-column: 1/3;
-            grid-row: 1/2;
+            text-align: left;
+            border-right: none;
         }
 
         #header form {
-            grid-column: 1/3;
+            grid-column: 1/2;
             grid-row: 2/3;
             display: flex;
             gap: 10px;
@@ -246,23 +247,29 @@
             text-align: right;
         }
 
-        #header-asp span {
+        #header-asp {
             grid-column: 1/2;
             grid-row: 3/4;
+        }
+
+        #header-asp span {
             text-align: left;
             margin: 0;
         }
 
         #header-asp button {
-            grid-column: 2/3;
-            grid-row: 3/4;
             margin: 0;
         }
+
     }
 
     @media screen and (max-width: 519px) {
         #header {
             padding: 0 0 10px 0;
+        }
+
+        #footer {
+            padding: 5px 0 0 0;
         }
     }
 </style>
