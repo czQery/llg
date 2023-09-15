@@ -1,11 +1,11 @@
 <script lang="ts">
-    import {sessionsSums, type sessionSum} from "../ts/global";
+    import {sessionSumStore, type sessionSum} from "../ts/global";
     import {formatDuration} from "../ts/helper";
 
     let sums: sessionSum[] = [];
     let sumsSum: number = 0;
 
-    sessionsSums.subscribe(async (value: sessionSum[]) => {
+    sessionSumStore.subscribe(async (value: sessionSum[]) => {
         if (value) {
             sums = value;
             sumsSum = 0;

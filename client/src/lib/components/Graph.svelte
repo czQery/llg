@@ -12,7 +12,7 @@
     } from "chart.js";
     import {formatDate, formatDuration, formatTime, getRandomColor} from "../ts/helper";
     import {type dataSum, type dataUser, type dataUserSession} from "../ts/api";
-    import {dataStore, sessionsSums, type sessionSum} from "../ts/global";
+    import {dataStore, sessionSumStore, type sessionSum} from "../ts/global";
 
     export let aspElement: HTMLSpanElement;
     let chElement: HTMLCanvasElement;
@@ -32,7 +32,7 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        display: true,
+                        display: false,
                         labels: {
                             font: {
                                 size: 15
@@ -165,7 +165,7 @@
             }
 
             chart.update();
-            sessionsSums.set(uSums);
+            sessionSumStore.set(uSums);
         }
     });
 </script>
