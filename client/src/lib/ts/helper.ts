@@ -36,7 +36,18 @@ export const getDate = (date: Date): string => {
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export const getRandomColor = (): string => {
-    return "#" + Math.floor(Math.random() * 16777215).toString(16);
+    let c = Math.floor(Math.random() * 16777215).toString(16);
+
+    if (c.length != 6) {
+        c = c+"0";
+    }
+
+    return "#" + c;
+}
+
+export const getPaletteColor = (): string => {
+    const colors: string[] = ["f28682", "0ceaf9", "fff654", "a845b3", "a09262", "d5334b", "60dd83", "f5980c", "fa147f"]
+    return "#"+colors[Math.floor(Math.random() * (colors.length - 1))]
 }
 
 export const isJSON = (response: Response): boolean => {

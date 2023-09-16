@@ -1,6 +1,6 @@
 <script lang="ts">
     import {BarController, BarElement, Chart, LinearScale, PointElement, Tooltip} from "chart.js";
-    import {formatDate, formatDuration, formatTime, getRandomColor, sleep} from "../ts/helper";
+    import {formatDate, formatDuration, formatTime, getPaletteColor, sleep} from "../ts/helper";
     import {type dataSum, type dataUser, type dataUserSession} from "../ts/api";
     import {dataStore, type activeUser, activeUserStore} from "../ts/global";
 
@@ -138,11 +138,13 @@
                 continue;
             }
 
-            let color: string = getRandomColor();
-            let hidden = false;
+            let color: string = getPaletteColor();
 
-            if (i > 2) {
-                hidden = true;
+            for (let j = 0; j < aUsers.length; j++) {
+                if (aUsers[j].color == color) {
+                    color = getPaletteColor()
+                    j = -1;
+                }
             }
 
             chart.data.datasets.push({
@@ -152,7 +154,7 @@
                 data: data.users[i].sessions.map((row: dataUserSession) => {
                     return {x: row.date, y: row.time}
                 }),
-                hidden: hidden
+                hidden: false
             });
 
             let uSum = 0;
