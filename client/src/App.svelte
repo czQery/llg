@@ -16,6 +16,7 @@
 
     let aspTextElement: HTMLSpanElement;
     let formMonthElement: HTMLInputElement;
+    let formUsersList: string[];
 
     const init = async () => {
         let urlParams = new URLSearchParams(window.location.search);
@@ -29,7 +30,14 @@
             formMonthElement.value = getDate(new Date());
         }
 
-        await loadData("?date=" + formMonthElement.value);
+        let urlUsers = urlParams.get("users");
+        if (urlUsers) {
+            formUsersList = urlUsers.split(",");
+        } else {
+            formUsersList = info.users.slice(0, 3);
+        }
+
+        await render();
 
         setTimeout(() => {
             document.getElementById("loading")!.style.display = "none";
@@ -43,16 +51,15 @@
             formMonthElement.value = getDate(new Date());
             return;
         }
-
-        let date = new Date(dateP)
-
+        let date = new Date(dateP);
         formMonthElement.value = getDate(date);
 
         const url = new URL(window.location.toString());
         url.searchParams.set("date", getDate(date));
+        url.searchParams.set("users", formUsersList.toString());
         window.history.pushState(null, "", url.toString());
 
-        loadData("?date=" + formMonthElement.value).then();
+        await loadData("?date=" + encodeURIComponent(formMonthElement.value)+"&users="+encodeURIComponent(formUsersList.toString()));
     }
 
     (async () => {
@@ -85,11 +92,14 @@
             </div>
             <div>
                 <label for="users">Users:</label>
-                <Svelecte options={info.users.map(u => ({"id": u, "text": u}))}
+                <Svelecte inputId="users"
+                          options={info.users.map(u => ({"id": u, "text": u}))}
                           multiple={true}
                           collapseSelection={true}
                           alwaysCollapsed={true}
                           searchable={false}
+                          valueAsObject={false}
+                          bind:value={formUsersList}
                           on:change={render}/>
             </div>
         </form>

@@ -1,13 +1,10 @@
 <script lang="ts">
-    import "chartjs-adapter-date-fns";
     import {
         BarController,
         BarElement,
         Chart,
-        Legend,
         LinearScale,
         PointElement,
-        TimeSeriesScale,
         Tooltip
     } from "chart.js";
     import {formatDate, formatDuration, formatTime, getRandomColor} from "../ts/helper";
@@ -18,7 +15,7 @@
     let chElement: HTMLCanvasElement;
     let data: dataSum = {dates: [], users: []};
 
-    Chart.register(LinearScale, TimeSeriesScale, BarController, BarElement, PointElement, Tooltip, Legend);
+    Chart.register(LinearScale, BarController, BarElement, PointElement, Tooltip);
     let chart: Chart<"bar", (number[] | undefined)[], number> | undefined;
     const initChart = (): Chart<"bar", (number[] | undefined)[], number> => {
         return new Chart(chElement, {
