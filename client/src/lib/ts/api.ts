@@ -53,9 +53,5 @@ export const loadData = async (param: string) => {
 
     const data = await response.json();
 
-    if (!isOK(data)) {
-        return;
-    }
-
     dataStore.set(data["data"] as dataSum);
 }

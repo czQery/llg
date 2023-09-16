@@ -1,15 +1,8 @@
 <script lang="ts">
-    import {
-        BarController,
-        BarElement,
-        Chart,
-        LinearScale,
-        PointElement,
-        Tooltip
-    } from "chart.js";
-    import {formatDate, formatDuration, formatTime, getRandomColor} from "../ts/helper";
+    import {BarController, BarElement, Chart, LinearScale, PointElement, Tooltip} from "chart.js";
+    import {formatDate, formatDuration, formatTime, getRandomColor, sleep} from "../ts/helper";
     import {type dataSum, type dataUser, type dataUserSession} from "../ts/api";
-    import {dataStore, sessionSumStore, type sessionSum} from "../ts/global";
+    import {dataStore, type activeUser, activeUserStore} from "../ts/global";
 
     export let aspElement: HTMLSpanElement;
     let chElement: HTMLCanvasElement;
@@ -17,7 +10,15 @@
 
     Chart.register(LinearScale, BarController, BarElement, PointElement, Tooltip);
     let chart: Chart<"bar", (number[] | undefined)[], number> | undefined;
-    const initChart = (): Chart<"bar", (number[] | undefined)[], number> => {
+    const initChart = async (): Promise<Chart<"bar", (number[] | undefined)[], number>> => {
+
+        while (true) {
+            if (chElement) {
+                break;
+            }
+            await sleep(50);
+        }
+
         return new Chart(chElement, {
             type: "bar",
             data: {
@@ -109,61 +110,63 @@
     }
 
     dataStore.subscribe(async (value: dataSum) => {
-        if (value) {
-            if (!value.dates || !value.users) {
-                return;
-            }
-
-            data = value;
-
-            if (!chart) {
-                chart = initChart();
-            } else {
-                chart.data.datasets = [];
-                if (chart.tooltip) {
-                    chart.tooltip.setActiveElements([], {x: 0, y: 0});
-                }
-            }
-
-            chart.data.labels = data.dates;
-
-            let uSums: sessionSum[] = [];
-
-            for (let i = 0; i < data.users.length; i++) {
-                if (!data.users[i].sessions) {
-                    continue;
-                }
-
-                let color: string = getRandomColor();
-                let hidden = false;
-
-                if (i > 2) {
-                    hidden = true;
-                }
-
-                chart.data.datasets.push({
-                    label: data.users[i].name,
-                    backgroundColor: color,
-                    //@ts-ignore
-                    data: data.users[i].sessions.map((row: dataUserSession) => {
-                        return {x: row.date, y: row.time}
-                    }),
-                    hidden: hidden
-                });
-
-                let uSum = 0;
-                for (const s of data.users[i].sessions) {
-                    if (!s.time) continue;
-
-                    uSum = uSum + (s.time[1] - s.time[0]);
-                }
-
-                uSums.push({color: color, sum: uSum});
+        if (!chart) {
+            chart = await initChart();
+        } else {
+            chart.data.labels = [];
+            chart.data.datasets = [];
+            if (chart.tooltip) {
+                chart.tooltip.setActiveElements([], {x: 0, y: 0});
             }
 
             chart.update();
-            sessionSumStore.set(uSums);
+            activeUserStore.set([]);
         }
+
+        if (!value || !value.dates || !value.users) {
+            return;
+        }
+
+        data = value;
+
+        chart.data.labels = data.dates;
+
+        let aUsers: activeUser[] = [];
+
+        for (let i = 0; i < data.users.length; i++) {
+            if (!data.users[i].sessions) {
+                continue;
+            }
+
+            let color: string = getRandomColor();
+            let hidden = false;
+
+            if (i > 2) {
+                hidden = true;
+            }
+
+            chart.data.datasets.push({
+                label: data.users[i].name,
+                backgroundColor: color,
+                //@ts-ignore
+                data: data.users[i].sessions.map((row: dataUserSession) => {
+                    return {x: row.date, y: row.time}
+                }),
+                hidden: hidden
+            });
+
+            let uSum = 0;
+            for (const s of data.users[i].sessions) {
+                if (!s.time) continue;
+
+                uSum = uSum + (s.time[1] - s.time[0]);
+            }
+
+            aUsers.push({name: data.users[i].name, color: color, sum: uSum});
+        }
+
+        chart.update();
+        activeUserStore.set(aUsers);
     });
 </script>
 

@@ -15,6 +15,8 @@ type InfoSum struct {
 func Info(c *fiber.Ctx) error {
 	var (
 		users []string
+		split []string
+		name  string
 	)
 
 	// get files list
@@ -29,7 +31,19 @@ func Info(c *fiber.Ctx) error {
 		if file.IsDir() {
 			continue
 		}
-		users = append(users, strings.Split(file.Name(), ".")[0])
+
+		name = ""
+
+		split = strings.Split(file.Name(), ".")
+		for i := 0; i < len(split)-1; i++ {
+			if name == "" {
+				name = split[i]
+			} else {
+				name = name + "." + split[i]
+			}
+		}
+
+		users = append(users, name)
 	}
 
 	return c.Status(200).JSON(Response{Data: InfoSum{Build: tl.Build, Users: users}})

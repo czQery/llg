@@ -3,15 +3,23 @@
     import Graph from "./lib/components/Graph.svelte";
     import {type infoSum, loadData, loadInfo} from "./lib/ts/api";
     import SumGraph from "./lib/components/SumGraph.svelte";
-    import {infoStore} from "./lib/ts/global.js";
+    import {type activeUser, activeUserStore, infoStore} from "./lib/ts/global.js";
 
     //@ts-ignore
-    import Svelecte from "svelecte";
+    import Svelecte, {addFormatter} from "svelecte";
 
     let info: infoSum = {build: "", users: []};
+    let infoInput: {text: string}[] = [];
+    let users: activeUser[] = [];
 
     infoStore.subscribe(async (value: infoSum) => {
-        if (value) info = value;
+        if (value) {
+            info = value;
+            infoInput = info.users.map((u: string) => ({"text": u}))
+        }
+    });
+    activeUserStore.subscribe(async (value: activeUser[]) => {
+        if (value) users = value;
     });
 
     let aspTextElement: HTMLSpanElement;
@@ -59,8 +67,28 @@
         url.searchParams.set("users", formUsersList.toString());
         window.history.pushState(null, "", url.toString());
 
-        await loadData("?date=" + encodeURIComponent(formMonthElement.value)+"&users="+encodeURIComponent(formUsersList.toString()));
+        await loadData("?date=" + encodeURIComponent(formMonthElement.value) + "&users=" + encodeURIComponent(formUsersList.toString()));
     }
+
+    const userColor = (item: { text: string }, isSelected: boolean) => {
+        let color: string = "";
+
+        if (isSelected) {
+            for (const s of users) {
+                if (s.name.toLowerCase() == item.text.toLowerCase()) {
+                    color = s.color;
+                    break;
+                }
+            }
+        }
+
+        if (color != "") {
+            return '<div class="color-item" style="border-left: 4px solid ' + color + '; padding: 0 0 0 4px">' + item.text + '</div>';
+        }
+
+        return '<div class="color-item">' + item.text + '</div>';
+    }
+    addFormatter("user-color", userColor);
 
     (async () => {
         while (true) {
@@ -93,11 +121,12 @@
             <div>
                 <label for="users">Users:</label>
                 <Svelecte inputId="users"
-                          options={info.users.map(u => ({"id": u, "text": u}))}
+                          renderer="user-color"
+                          options={infoInput}
                           multiple={true}
                           collapseSelection={true}
                           alwaysCollapsed={true}
-                          searchable={false}
+                          searchable={true}
                           valueAsObject={false}
                           bind:value={formUsersList}
                           on:change={render}/>
@@ -138,6 +167,7 @@
     }
 
     :global(.sv-content .inputBox) {
+        color: #000;
         width: 1px;
         height: 0 !important;
     }

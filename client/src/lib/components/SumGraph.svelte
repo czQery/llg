@@ -1,11 +1,11 @@
 <script lang="ts">
-    import {sessionSumStore, type sessionSum} from "../ts/global";
+    import {type activeUser, activeUserStore} from "../ts/global";
     import {formatDuration} from "../ts/helper";
 
-    let sums: sessionSum[] = [];
+    let sums: activeUser[] = [];
     let sumsSum: number = 0;
 
-    sessionSumStore.subscribe(async (value: sessionSum[]) => {
+    activeUserStore.subscribe(async (value: activeUser[]) => {
         if (value) {
             sums = value;
             sumsSum = 0;
@@ -20,6 +20,8 @@
 <div id="sm">
     {#each sums as s}
         <div style={"background-color: "+s.color+"; width: "+(s.sum / sumsSum) * 100+"%"}>{formatDuration((s.sum / sumsSum) * 100 * 60)}</div>
+    {:else}
+        <div style="color: #000; width: 100%">There are no data for selected date or users!</div>
     {/each}
 </div>
 
