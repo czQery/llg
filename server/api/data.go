@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/czQery/llg/tl"
 	"github.com/gofiber/fiber/v2"
+	"net/url"
 	"os"
 	"sort"
 	"strconv"
@@ -37,18 +38,27 @@ func Data(c *fiber.Ctx) error {
 		searchDateList     = make(map[string]int64)
 		searchDateListKeys = make([]string, 0, len(searchDateList))
 
-		dateParam time.Time
+		dateParam  time.Time
+		usersParam []string
 	)
 
 	if c.Query("date") != "" {
 		var err error
-		dateParam, err = time.Parse(timeLayoutParam, c.Query("date"))
+		dateDecoded, _ := url.QueryUnescape(c.Query("date"))
+		dateParam, err = time.Parse(timeLayoutParam, dateDecoded)
 		if err != nil {
 			dateParam = time.Now()
 		}
 
 	} else {
 		dateParam = time.Now()
+	}
+
+	if c.Query("users") != "" {
+		usersDecoded, _ := url.QueryUnescape(c.Query("users"))
+		usersParam = strings.Split(usersDecoded, ",")
+	} else {
+		return c.Status(400).JSON(Response{Message: "no users selected"})
 	}
 
 	// debug
@@ -65,74 +75,88 @@ func Data(c *fiber.Ctx) error {
 
 	// read all files in specified folder
 	for _, file := range files {
-		if !file.IsDir() {
-			fileData, err := os.ReadFile(dir + file.Name())
-			if err != nil {
-				tl.Log("API", "Data - readFile error: "+err.Error(), "error")
+		if file.IsDir() {
+			continue
+		}
+
+		var hit bool
+		for _, u := range usersParam {
+			if strings.Contains(file.Name(), u) {
+				hit = true
+				break
+			}
+		}
+
+		if !hit {
+			continue
+		}
+
+		fileData, err := os.ReadFile(dir + file.Name())
+		if err != nil {
+			tl.Log("API", "Data - readFile error: "+err.Error(), "error")
+		}
+
+		var (
+			search            bool
+			searchName        string
+			searchLogin       []string
+			searchSessionList []DataUserSession
+		)
+
+		// read all lines in file
+		for _, fileLine := range strings.Split(string(fileData), "\n") {
+
+			fileLine = strings.ReplaceAll(fileLine, "\r", "")
+			fileP := strings.Split(fileLine, ";")
+			dbgLines = dbgLines + 1
+
+			// mark session start
+			if fileP[0] == "login" && !search {
+				search = true
+				searchName = fileP[1]
+				searchLogin = fileP
 			}
 
-			var (
-				search            bool
-				searchName        string
-				searchLogin       []string
-				searchSessionList []DataUserSession
-			)
+			// mark session end
+			if fileP[0] == "logoff" && search {
+				date, _ := time.Parse(timeLayout, searchLogin[3]+"-00:00")
+				dateOver, _ := time.Parse(timeLayout, fileP[3]+"-00:00")
 
-			// read all lines in file
-			for _, fileLine := range strings.Split(string(fileData), "\n") {
+				timeStart, _ := time.Parse(timeLayout, "01.01.1970-"+searchLogin[4])
+				timeEnd, _ := time.Parse(timeLayout, "01.01.1970-"+fileP[4])
 
-				fileLine = strings.ReplaceAll(fileLine, "\r", "")
-				fileP := strings.Split(fileLine, ";")
-				dbgLines = dbgLines + 1
-
-				// mark session start
-				if fileP[0] == "login" && !search {
-					search = true
-					searchName = fileP[1]
-					searchLogin = fileP
-				}
-
-				// mark session end
-				if fileP[0] == "logoff" && search {
-					date, _ := time.Parse(timeLayout, searchLogin[3]+"-00:00")
-					dateOver, _ := time.Parse(timeLayout, fileP[3]+"-00:00")
-
-					timeStart, _ := time.Parse(timeLayout, "01.01.1970-"+searchLogin[4])
-					timeEnd, _ := time.Parse(timeLayout, "01.01.1970-"+fileP[4])
-
-					// date sanity check
-					if date.Unix() < 0 {
-						tl.Log("API", "Data - session: "+fileP[1]+" invalid date: "+searchLogin[3], "warn")
-						search = false
-						continue
-					}
-
-					// selected month check
-					if date.Year() != dateParam.Year() || date.Month() != dateParam.Month() || dateOver.Year() != dateParam.Year() || dateOver.Month() != dateParam.Month() {
-						search = false
-						continue
-					}
-
-					// over midnight check
-					if timeStart.Unix() > timeEnd.Unix() {
-						searchDateList[searchLogin[3]] = date.Unix() / 60 / 60 / 24
-						searchDateList[fileP[3]] = dateOver.Unix() / 60 / 60 / 24
-
-						searchSessionList = append(searchSessionList, DataUserSession{Date: date.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
-						searchSessionList = append(searchSessionList, DataUserSession{Date: dateOver.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{0, int(timeEnd.Unix() / 60)}})  // midnight to end
-
-						search = false
-						continue
-					}
-
-					searchSessionList = append(searchSessionList, DataUserSession{Date: date.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
-					searchDateList[searchLogin[3]] = date.Unix() / 60 / 60 / 24
+				// date sanity check
+				if date.Unix() < 0 {
+					tl.Log("API", "Data - session: "+fileP[1]+" invalid date: "+searchLogin[3], "warn")
 					search = false
+					continue
 				}
+
+				// selected month check
+				if date.Year() != dateParam.Year() || date.Month() != dateParam.Month() || dateOver.Year() != dateParam.Year() || dateOver.Month() != dateParam.Month() {
+					search = false
+					continue
+				}
+
+				// over midnight check
+				if timeStart.Unix() > timeEnd.Unix() {
+					searchDateList[searchLogin[3]] = date.Unix() / 60 / 60 / 24
+					searchDateList[fileP[3]] = dateOver.Unix() / 60 / 60 / 24
+
+					searchSessionList = append(searchSessionList, DataUserSession{Date: date.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+					searchSessionList = append(searchSessionList, DataUserSession{Date: dateOver.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{0, int(timeEnd.Unix() / 60)}})  // midnight to end
+
+					search = false
+					continue
+				}
+
+				searchSessionList = append(searchSessionList, DataUserSession{Date: date.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
+				searchDateList[searchLogin[3]] = date.Unix() / 60 / 60 / 24
+				search = false
 			}
-			if len(searchSessionList) > 0 {
-				dataUsers = append(dataUsers, DataUser{Name: searchName, Sessions: searchSessionList})
-			}
+		}
+		if len(searchSessionList) > 0 {
+			dataUsers = append(dataUsers, DataUser{Name: searchName, Sessions: searchSessionList})
 		}
 	}
 
@@ -149,6 +173,10 @@ func Data(c *fiber.Ctx) error {
 	}
 
 	tl.Log("API", "Data - reading done: "+time.Since(dbgStart).String()+" lines: "+strconv.Itoa(dbgLines), "debug")
+
+	if len(dataDates) == 0 {
+		return c.Status(404).JSON(Response{Message: "no data"})
+	}
 
 	return c.Status(200).JSON(Response{Data: DataSum{Dates: dataDates, Users: dataUsers}})
 }
