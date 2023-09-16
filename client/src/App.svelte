@@ -4,7 +4,9 @@
     import {type infoSum, loadData, loadInfo} from "./lib/ts/api";
     import SumGraph from "./lib/components/SumGraph.svelte";
     import {infoStore} from "./lib/ts/global.js";
-    import {MultiSelect} from "svelte-multiselect";
+
+    //@ts-ignore
+    import Svelecte from "svelecte";
 
     let info: infoSum = {build: "", users: []};
 
@@ -77,21 +79,18 @@
         <form>
             <div>
                 <label for="month">Month:</label>
-                <input type="month" id="month" name="month" min="2000-00" on:change={render}
+                <input type="month" id="month" name="month" min="2000-00"
+                       on:change={render}
                        bind:this={formMonthElement}/>
             </div>
             <div>
                 <label for="users">Users:</label>
-                <MultiSelect id="users" on:change={render}
-                             --sms-options-bg="#FFF"
-                             --sms-border="1px solid #FFF"
-                             --sms-border-radius="5px"
-                             --sms-focus-border="1px solid #3b60dc"
-                             --sms-bg="#FFF"
-                             --sms-text-color="#000"
-                             allowUserOptions="append"
-                             selected={info.users.slice(0, 3)}
-                             options={info.users}/>
+                <Svelecte options={info.users.map(u => ({"id": u, "text": u}))}
+                          multiple={true}
+                          collapseSelection={true}
+                          alwaysCollapsed={true}
+                          searchable={false}
+                          on:change={render}/>
             </div>
         </form>
         <div id="header-asp">
@@ -114,6 +113,33 @@
 </main>
 
 <style>
+    :global(.sv-control) {
+        border: 1px solid #FFF !important;
+        border-radius: var(--rad) !important;
+        min-height: 30px !important;
+        height: 30px !important;
+        color: #000 !important;
+        outline: none !important;
+    }
+
+    :global(.sv-control.is-active) {
+        border: 1px solid var(--cb) !important;
+        outline: none !important;
+    }
+
+    :global(.sv-content .inputBox) {
+        width: 1px;
+        height: 0 !important;
+    }
+
+    :global(.sv-dropdown .has-multiSelection) {
+        flex-direction: column;
+    }
+
+    :global(.sv-control.is-active > .has-multiSelection > div) {
+        width: 100%;
+    }
+
     #header {
         height: 100%;
         display: grid;
@@ -146,7 +172,7 @@
         flex-direction: column;
         gap: 10px;
         color: #FFF;
-        text-align: right;
+        text-align: left;
     }
 
     #header form div {
@@ -167,14 +193,21 @@
         height: 30px;
         width: 180px;
         border: 1px solid #FFF;
-        font-size: 18px;
+        font-size: 16px;
         border-radius: var(--rad);
-        text-align: center;
+        text-align: left;
         outline: none;
+        padding: 0 0 0 5px;
     }
 
     #header form div input:focus {
-        border: 1px solid #3b60dc;
+        border: 1px solid var(--cb);
+    }
+
+    :global(.svelecte-control.svelecte) {
+        height: 30px;
+        width: 180px !important;
+        flex-grow: 0 !important;
     }
 
     #header-asp {
