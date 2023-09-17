@@ -32,7 +32,7 @@ const timeLayoutParam = "2006-01"
 
 func Data(c *fiber.Ctx) error {
 	var (
-		dir                = os.Args[1]
+		dir                = tl.Config["path"].(string)
 		dataDates          []int64
 		dataUsers          []DataUser
 		searchDateList     = make(map[string]int64)
@@ -64,12 +64,12 @@ func Data(c *fiber.Ctx) error {
 	// debug
 	dbgStart := time.Now()
 	dbgLines := 0
-	tl.Log("API", "Data - reading init!", "debug")
+	tl.Log("api", "data - reading init!", "debug")
 
 	// get files list
 	files, err := os.ReadDir(dir)
 	if err != nil {
-		tl.Log("API", "Data - readDir error: "+err.Error(), "error")
+		tl.Log("api", "data - readDir error: "+err.Error(), "error")
 		return c.Status(500).JSON(Response{Message: "unexpected internal error"})
 	}
 
@@ -93,7 +93,7 @@ func Data(c *fiber.Ctx) error {
 
 		fileData, err := os.ReadFile(dir + file.Name())
 		if err != nil {
-			tl.Log("API", "Data - readFile error: "+err.Error(), "error")
+			tl.Log("api", "data - readFile error: "+err.Error(), "error")
 		}
 
 		var (
@@ -127,7 +127,7 @@ func Data(c *fiber.Ctx) error {
 
 				// date sanity check
 				if date.Unix() < 0 {
-					tl.Log("API", "Data - session: "+fileP[1]+" invalid date: "+searchLogin[3], "warn")
+					tl.Log("api", "data - session: "+fileP[1]+" invalid date: "+searchLogin[3], "warn")
 					search = false
 					continue
 				}
@@ -172,7 +172,7 @@ func Data(c *fiber.Ctx) error {
 		dataDates = append(dataDates, searchDateList[k])
 	}
 
-	tl.Log("API", "Data - reading done: "+time.Since(dbgStart).String()+" lines: "+strconv.Itoa(dbgLines), "debug")
+	tl.Log("api", "data - reading done: "+time.Since(dbgStart).String()+" lines: "+strconv.Itoa(dbgLines), "debug")
 
 	if len(dataDates) == 0 {
 		return c.Status(404).JSON(Response{Message: "no data"})

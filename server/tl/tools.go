@@ -1,7 +1,9 @@
 package tl
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -15,4 +17,17 @@ func Log(prefix string, message string, messageType string) {
 	now := time.Now()
 	messageType = "[" + messageType + "]"
 	fmt.Println("[" + now.Format("02/01/2006") + " - " + now.Format("15:04:05") + "] " + messageType + " " + prefix + " - " + message)
+}
+
+var Config map[string]interface{}
+
+func LoadConfig() {
+	configFile, err1 := os.ReadFile("config.json")
+	err2 := json.Unmarshal(configFile, &Config)
+	if err1 != nil || err2 != nil {
+		Log("config", "load error: "+err1.Error()+" & "+err2.Error(), "error")
+		os.Exit(1)
+	}
+
+	Log("config", "successfully loaded!", "info")
 }

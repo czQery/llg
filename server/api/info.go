@@ -8,8 +8,9 @@ import (
 )
 
 type InfoSum struct {
-	Build string   `json:"build"`
-	Users []string `json:"users"`
+	Build         string   `json:"build"`
+	Users         []string `json:"users"`
+	SelectedUsers int      `json:"selected_users"`
 }
 
 func Info(c *fiber.Ctx) error {
@@ -20,9 +21,9 @@ func Info(c *fiber.Ctx) error {
 	)
 
 	// get files list
-	files, err := os.ReadDir(os.Args[1])
+	files, err := os.ReadDir(tl.Config["path"].(string))
 	if err != nil {
-		tl.Log("API", "Data - readDir error: "+err.Error(), "error")
+		tl.Log("api", "data - readDir error: "+err.Error(), "error")
 		return c.Status(500).JSON(Response{Message: "unexpected internal error"})
 	}
 
@@ -46,5 +47,5 @@ func Info(c *fiber.Ctx) error {
 		users = append(users, name)
 	}
 
-	return c.Status(200).JSON(Response{Data: InfoSum{Build: tl.Build, Users: users}})
+	return c.Status(200).JSON(Response{Data: InfoSum{Build: tl.Build, Users: users, SelectedUsers: int(tl.Config["selected_users"].(float64))}})
 }

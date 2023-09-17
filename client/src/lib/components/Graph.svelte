@@ -2,11 +2,17 @@
     import {BarController, BarElement, Chart, LinearScale, PointElement, Tooltip} from "chart.js";
     import {formatDate, formatDuration, formatTime, getPaletteColor, sleep} from "../ts/helper";
     import {type dataSum, type dataUser, type dataUserSession} from "../ts/api";
-    import {dataStore, type activeUser, activeUserStore} from "../ts/global";
+    import {type activeUser, activeUserStore, dataStore} from "../ts/global";
 
     export let aspElement: HTMLSpanElement;
     let chElement: HTMLCanvasElement;
     let data: dataSum = {dates: [], users: []};
+
+    let users: activeUser[] = [];
+
+    activeUserStore.subscribe(async (value: activeUser[]) => {
+        if (value) users = value;
+    });
 
     Chart.register(LinearScale, BarController, BarElement, PointElement, Tooltip);
     let chart: Chart<"bar", (number[] | undefined)[], number> | undefined;
@@ -138,12 +144,10 @@
                 continue;
             }
 
-            let color: string = getPaletteColor();
-
-            for (let j = 0; j < aUsers.length; j++) {
-                if (aUsers[j].color == color) {
-                    color = getPaletteColor()
-                    j = -1;
+            let color: string = "";
+            for (const s of users) {
+                if (s.name.toLowerCase() == data.users[i].name.toLowerCase()) {
+                    color = s.color;
                 }
             }
 

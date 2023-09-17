@@ -12,7 +12,7 @@ func main() {
 	tl.Log("main", "by: Štěpán Aubrecht", "info")
 	tl.Log("main", "build: "+tl.Build, "info")
 
-	tl.Log("fiber", "starting...", "info")
+	tl.LoadConfig()
 
 	r := fiber.New(fiber.Config{
 		CaseSensitive:         false,
@@ -34,6 +34,8 @@ func main() {
 	r.Use(func(c *fiber.Ctx) error {
 		return c.Status(404).JSON(api.Response{Message: "unknown endpoint"})
 	})
+
+	tl.Log("fiber", "started!", "info")
 
 	// Run
 	err := r.Listen(":8893")

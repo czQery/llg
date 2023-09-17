@@ -1,16 +1,19 @@
 <script lang="ts">
-    import {getDate, sleep} from "./lib/ts/helper";
+    import {getDate, getPaletteColor, sleep} from "./lib/ts/helper";
     import Graph from "./lib/components/Graph.svelte";
     import {type infoSum, loadData, loadInfo} from "./lib/ts/api";
     import SumGraph from "./lib/components/SumGraph.svelte";
     import {type activeUser, activeUserStore, infoStore} from "./lib/ts/global.js";
 
-    //@ts-ignore
     import Svelecte, {addFormatter} from "svelecte";
 
     let info: infoSum = {build: "", users: []};
-    let infoInput: {text: string}[] = [];
+    let infoInput: { text: string }[] = [];
     let users: activeUser[] = [];
+
+    let aspTextElement: HTMLSpanElement;
+    let formMonthElement: HTMLInputElement;
+    let formUsersList: string[];
 
     infoStore.subscribe(async (value: infoSum) => {
         if (value) {
@@ -21,10 +24,6 @@
     activeUserStore.subscribe(async (value: activeUser[]) => {
         if (value) users = value;
     });
-
-    let aspTextElement: HTMLSpanElement;
-    let formMonthElement: HTMLInputElement;
-    let formUsersList: string[];
 
     const init = async () => {
         let urlParams = new URLSearchParams(window.location.search);
@@ -42,7 +41,7 @@
         if (urlUsers) {
             formUsersList = urlUsers.split(",");
         } else {
-            formUsersList = info.users.slice(0, 3);
+            formUsersList = info.users.slice(0, info.selected_users);
         }
 
         await render();
@@ -71,22 +70,30 @@
     }
 
     const userColor = (item: { text: string }, isSelected: boolean) => {
-        let color: string = "";
-
         if (isSelected) {
-            for (const s of users) {
-                if (s.name.toLowerCase() == item.text.toLowerCase()) {
-                    color = s.color;
-                    break;
+            let color = getPaletteColor();
+            let ttl = 0;
+
+            for (let j = 0; j < users.length; j++) {
+                if (users[j].color == color) {
+                    color = getPaletteColor();
+
+                    if (ttl > users.length*4) {
+                        continue;
+                    }
+
+                    ttl = ttl+1;
+                    j = -1;
                 }
             }
+
+            let aUsers = users;
+            aUsers.push({name: item.text, color: color, sum: -1})
+            activeUserStore.set(aUsers);
+            return '<div style="border-left: 4px solid ' + color + '; padding: 0 0 0 4px">' + item.text + '</div>';
         }
 
-        if (color != "") {
-            return '<div class="color-item" style="border-left: 4px solid ' + color + '; padding: 0 0 0 4px">' + item.text + '</div>';
-        }
-
-        return '<div class="color-item">' + item.text + '</div>';
+        return '<div>' + item.text + '</div>';
     }
     addFormatter("user-color", userColor);
 

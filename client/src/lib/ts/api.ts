@@ -5,6 +5,7 @@ import {dataStore, infoStore} from "./global";
 export interface infoSum {
     build: string
     users: string[]
+    selected_users: number
 }
 
 export const loadInfo = async (): Promise<boolean> => {

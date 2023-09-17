@@ -19,7 +19,9 @@
 
 <div id="sm">
     {#each sums as s}
-        <div style={"background-color: "+s.color+"; width: "+(s.sum / sumsSum) * 100+"%"}>{formatDuration((s.sum / sumsSum) * 100 * 60)}</div>
+        {#if s.sum !== -1}
+            <div style={"background-color: "+s.color+"; width: "+(s.sum / sumsSum) * 100+"%"}>{formatDuration((s.sum / sumsSum) * 100 * 60)}</div>
+        {/if}
     {:else}
         <div style="color: #000; width: 100%">There are no data for selected date or users!</div>
     {/each}
