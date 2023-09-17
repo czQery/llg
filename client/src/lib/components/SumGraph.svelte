@@ -18,13 +18,17 @@
 </script>
 
 <div id="sm">
-    {#each sums as s}
-        {#if s.sum !== -1}
-            <div style={"background-color: "+s.color+"; width: "+(s.sum / sumsSum) * 100+"%"}>{formatDuration((s.sum / sumsSum) * 100 * 60)}</div>
-        {/if}
-    {:else}
+    {#if sumsSum <= 0}
         <div style="color: #000; width: 100%">There are no data for selected date or users!</div>
-    {/each}
+    {:else}
+        {#each sums as s}
+            {#if s.sum !== -1}
+                <div style={"background-color: "+s.color+"; width: "+(s.sum / sumsSum) * 100+"%"}>{formatDuration((s.sum / sumsSum) * 100 * 60)}</div>
+            {/if}
+        {:else}
+            <div style="color: #000; width: 100%">There are no data for selected date or users!</div>
+        {/each}
+    {/if}
 </div>
 
 <style>

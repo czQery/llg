@@ -38,6 +38,6 @@ func main() {
 	tl.Log("fiber", "started!", "info")
 
 	// Run
-	err := r.Listen(":8893")
+	err := r.Listen(tl.Config["address"].(string))
 	tl.Log("fiber", err.Error(), "error")
 }

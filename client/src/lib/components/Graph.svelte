@@ -34,6 +34,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                maxBarThickness: 80,
                 plugins: {
                     legend: {
                         display: false,
@@ -93,9 +94,23 @@
                         ticks: {
                             stepSize: 1,
                             callback: (value) => {
+                                if ((value as number) < 10) {
+                                    return null;
+                                }
+
+                                if (data.dates.length == 1) {
+                                    let timeThis = new Date((value as number) * 60 * 60 * 24 * 1000);
+                                    let timeData = new Date(data.dates[0] * 60 * 60 * 24 * 1000);
+
+                                    if (timeThis.getMonth() != timeData.getMonth() || timeThis.getFullYear() != timeData.getFullYear()) {
+                                        return "";
+                                    }
+                                }
+
                                 return formatDate((value as number));
                             }
                         },
+                        beginAtZero: false,
                     },
                     y: {
                         type: "linear",
@@ -125,6 +140,11 @@
                 chart.tooltip.setActiveElements([], {x: 0, y: 0});
             }
 
+            //@ts-ignore
+            chart.options.scales.x.min = null;
+            //@ts-ignore
+            chart.options.scales.x.max = null;
+
             chart.update();
             activeUserStore.set([]);
         }
@@ -137,6 +157,14 @@
 
         chart.data.labels = data.dates;
 
+        let rangeMin = new Date(new Date().getFullYear(), (new Date(data.dates[0] * 60 * 60 * 24 * 1000).getMonth()), 2);
+        let rangeMax = new Date(new Date().getFullYear(), (new Date(data.dates[0] * 60 * 60 * 24 * 1000).getMonth()) + 1, 1);
+
+        //@ts-ignore
+        chart.options.scales.x.min = Math.trunc(rangeMin.valueOf() / 60 / 60 / 24 / 1000);
+        //@ts-ignore
+        chart.options.scales.x.max = Math.trunc(rangeMax.valueOf() / 60 / 60 / 24 / 1000);
+
         let aUsers: activeUser[] = [];
 
         for (let i = 0; i < data.users.length; i++) {
@@ -148,6 +176,24 @@
             for (const s of users) {
                 if (s.name.toLowerCase() == data.users[i].name.toLowerCase()) {
                     color = s.color;
+                }
+            }
+
+            if (color == "") {
+                color = getPaletteColor();
+                let ttl = 0;
+
+                for (let j = 0; j < users.length; j++) {
+                    if (users[j].color == color) {
+                        color = getPaletteColor();
+
+                        if (ttl > users.length * users.length) {
+                            continue;
+                        }
+
+                        ttl = ttl + 1;
+                        j = -1;
+                    }
                 }
             }
 

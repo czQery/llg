@@ -78,11 +78,11 @@
                 if (users[j].color == color) {
                     color = getPaletteColor();
 
-                    if (ttl > users.length*4) {
+                    if (ttl > users.length * users.length) {
                         continue;
                     }
 
-                    ttl = ttl+1;
+                    ttl = ttl + 1;
                     j = -1;
                 }
             }
@@ -117,7 +117,7 @@
 
 <main>
     <header id="header">
-        <h1>LLG</h1>
+        <a href="/">LLG</a>
         <form>
             <div>
                 <label for="month">Month:</label>
@@ -198,7 +198,7 @@
         padding: 0 0 20px 0;
     }
 
-    #header h1 {
+    #header a {
         grid-column: 1/2;
         grid-row: 1/2;
         color: #FFF;
@@ -208,8 +208,6 @@
         line-height: 70px;
         margin: 0;
         font-size: 80px;
-        border-right: 3px solid white;
-        padding-right: 7px;
     }
 
     #header form {
@@ -220,6 +218,8 @@
         gap: 10px;
         color: #FFF;
         text-align: left;
+        border-left: 3px solid white;
+        padding-left: 13px;
     }
 
     #header form div {
@@ -313,7 +313,7 @@
             grid-template-rows: min-content repeat(2, 70px);
         }
 
-        #header h1 {
+        #header a {
             text-align: left;
             border-right: none;
         }
