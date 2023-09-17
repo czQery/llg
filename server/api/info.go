@@ -4,6 +4,7 @@ import (
 	"github.com/czQery/llg/tl"
 	"github.com/gofiber/fiber/v2"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -46,6 +47,10 @@ func Info(c *fiber.Ctx) error {
 
 		users = append(users, name)
 	}
+
+	sort.Slice(users, func(i, j int) bool {
+		return strings.ToLower(users[i]) < strings.ToLower(users[j])
+	})
 
 	return c.Status(200).JSON(Response{Data: InfoSum{Build: tl.Build, Users: users, SelectedUsers: int(tl.Config["selected_users"].(float64))}})
 }
