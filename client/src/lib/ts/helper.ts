@@ -46,7 +46,7 @@ export const getRandomColor = (): string => {
 }
 
 export const getPaletteColor = (): string => {
-    const colors: string[] = ["f28682", "0ceaf9", "fff654", "a845b3", "a09262", "d5334b", "60dd83", "f5980c", "fa147f"]
+    const colors: string[] = ["f28682", "0ceaf9", "fae100", "a845b3", "a09262", "d5334b", "60dd83", "f5980c", "fa147f"]
     return "#"+colors[Math.floor(Math.random() * (colors.length - 1))]
 }
 
