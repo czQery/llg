@@ -7,11 +7,19 @@ export const infoStore: Writable<infoSum> = writable();
 // dataStore: data from /api/data
 export const dataStore: Writable<dataSum> = writable();
 
-export interface activeUser {
+export interface userActive {
     name: string
     color: string
     sum: number
 }
 
-// activeUserStore: list of rendered users
-export const activeUserStore: Writable<activeUser[]> = writable();
+// userActiveStore: list of rendered users
+export const userActiveStore: Writable<userActive[]> = writable();
+
+export interface userInput {
+    text: string
+    color: string
+}
+
+// userInputStore: list selected users
+export const userInputStore: Writable<userInput[]> = writable();

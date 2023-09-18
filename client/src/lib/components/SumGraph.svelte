@@ -1,11 +1,11 @@
 <script lang="ts">
-    import {type activeUser, activeUserStore} from "../ts/global";
+    import {type userActive, userActiveStore} from "../ts/global";
     import {formatDuration} from "../ts/helper";
 
-    let sums: activeUser[] = [];
+    let sums: userActive[] = [];
     let sumsSum: number = 0;
 
-    activeUserStore.subscribe(async (value: activeUser[]) => {
+    userActiveStore.subscribe((value: userActive[]) => {
         if (value) {
             sums = value;
             sumsSum = 0;

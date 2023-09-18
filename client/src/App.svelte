@@ -3,26 +3,28 @@
     import Graph from "./lib/components/Graph.svelte";
     import {type infoSum, loadData, loadInfo} from "./lib/ts/api";
     import SumGraph from "./lib/components/SumGraph.svelte";
-    import {type activeUser, activeUserStore, infoStore} from "./lib/ts/global.js";
-
-    import Svelecte, {addFormatter} from "svelecte";
+    import {infoStore, type userInput, userInputStore} from "./lib/ts/global.js";
+    import UserInput from "./lib/components/UserInput.svelte";
 
     let info: infoSum = {build: "", users: []};
-    let infoInput: { text: string }[] = [];
-    let users: activeUser[] = [];
+    let infoUserInput: userInput[] = [];
 
-    let aspTextElement: HTMLSpanElement;
-    let formMonthElement: HTMLInputElement;
-    let formUsersList: string[];
+    let aspElement: HTMLSpanElement;
+    let dateInputElement: HTMLInputElement;
+    let userInputList: userInput[] = [];
 
-    infoStore.subscribe(async (value: infoSum) => {
+    infoStore.subscribe((value: infoSum) => {
         if (value) {
             info = value;
-            infoInput = info.users.map((u: string) => ({"text": u}))
+            infoUserInput = info.users.map((u: string) => ({"text": u}))
         }
     });
-    activeUserStore.subscribe(async (value: activeUser[]) => {
-        if (value) users = value;
+
+    userInputStore.subscribe((value: userInput[]) => {
+        if (value) {
+            userInputList = value;
+            render();
+        }
     });
 
     const init = async () => {
@@ -31,18 +33,44 @@
         if (urlDate) {
             let dateP = Date.parse(urlDate);
             if (dateP) {
-                formMonthElement.value = getDate(new Date(dateP));
+                dateInputElement.value = getDate(new Date(dateP));
             }
         } else {
-            formMonthElement.value = getDate(new Date());
+            dateInputElement.value = getDate(new Date());
         }
 
         let urlUsers = urlParams.get("users");
+        let urlUsersInput: userInput[] = [];
         if (urlUsers) {
-            formUsersList = urlUsers.split(",");
+            urlUsersInput = urlUsers.split(",").map((u: string) => {
+                return {text: u, color: ""}
+            });
         } else {
-            formUsersList = info.users.slice(0, info.selected_users);
+            urlUsersInput = info.users.slice(0, info.selected_users).map((u: string) => {
+                return {text: u, color: ""}
+            });
         }
+
+        for (const u of urlUsersInput) {
+            let color = getPaletteColor();
+            let ttl = 0;
+
+            for (let i = 0; i < urlUsersInput.length; i++) {
+                if (urlUsersInput[i].color == color && urlUsersInput[i].text != u.text) {
+                    color = getPaletteColor();
+
+                    if (ttl > urlUsersInput.length * urlUsersInput.length) {
+                        continue;
+                    }
+
+                    ttl = ttl + 1;
+                    i = -1;
+                }
+            }
+            u.color = color;
+        }
+
+        userInputStore.set(urlUsersInput);
 
         await render();
 
@@ -53,49 +81,25 @@
     }
 
     const render = async () => {
-        let dateP = Date.parse(formMonthElement.value);
+        let dateP = Date.parse(dateInputElement.value);
         if (!dateP) {
-            formMonthElement.value = getDate(new Date());
+            dateInputElement.value = getDate(new Date());
             return;
         }
         let date = new Date(dateP);
-        formMonthElement.value = getDate(date);
+        dateInputElement.value = getDate(date);
 
         const url = new URL(window.location.toString());
         url.searchParams.set("date", getDate(date));
-        url.searchParams.set("users", formUsersList.toString());
+        url.searchParams.set("users", (userInputList.map((u: userInput) => {
+            return u.text
+        })).toString());
         window.history.pushState(null, "", url.toString());
 
-        await loadData("?date=" + encodeURIComponent(formMonthElement.value) + "&users=" + encodeURIComponent(formUsersList.toString()));
+        await loadData("?date=" + encodeURIComponent(dateInputElement.value) + "&users=" + encodeURIComponent((userInputList.map((u: userInput) => {
+            return u.text
+        })).toString()));
     }
-
-    const userColor = (item: { text: string }, isSelected: boolean) => {
-        if (isSelected) {
-            let color = getPaletteColor();
-            let ttl = 0;
-
-            for (let j = 0; j < users.length; j++) {
-                if (users[j].color == color) {
-                    color = getPaletteColor();
-
-                    if (ttl > users.length * users.length) {
-                        continue;
-                    }
-
-                    ttl = ttl + 1;
-                    j = -1;
-                }
-            }
-
-            let aUsers = users;
-            aUsers.push({name: item.text, color: color, sum: -1})
-            activeUserStore.set(aUsers);
-            return '<div style="border-left: 4px solid ' + color + '; padding: 0 0 0 4px">' + item.text + '</div>';
-        }
-
-        return '<div>' + item.text + '</div>';
-    }
-    addFormatter("user-color", userColor);
 
     (async () => {
         while (true) {
@@ -123,32 +127,23 @@
                 <label for="month">Month:</label>
                 <input type="month" id="month" name="month" min="2000-00"
                        on:change={render}
-                       bind:this={formMonthElement}/>
+                       bind:this={dateInputElement}/>
             </div>
             <div>
                 <label for="users">Users:</label>
-                <Svelecte inputId="users"
-                          renderer="user-color"
-                          options={infoInput}
-                          multiple={true}
-                          collapseSelection={true}
-                          alwaysCollapsed={true}
-                          searchable={true}
-                          valueAsObject={false}
-                          bind:value={formUsersList}
-                          on:change={render}/>
+                <UserInput userList={infoUserInput}/>
             </div>
         </form>
         <div id="header-asp">
-            <span bind:this={aspTextElement}></span>
-            <button on:click={() => {navigator.clipboard.writeText(aspTextElement.innerText)}}>copy
+            <span bind:this={aspElement}></span>
+            <button on:click={() => {navigator.clipboard.writeText(aspElement.innerText)}}>copy
                 admin path
             </button>
         </div>
     </header>
     <div id="wrapper">
         <!--<Details/>-->
-        <Graph aspElement={aspTextElement}/>
+        <Graph aspElement={aspElement} userInputList={userInputList}/>
     </div>
     <SumGraph/>
     <footer id="footer">

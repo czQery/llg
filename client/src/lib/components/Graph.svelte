@@ -2,17 +2,12 @@
     import {BarController, BarElement, Chart, LinearScale, PointElement, Tooltip} from "chart.js";
     import {formatDate, formatDuration, formatTime, getPaletteColor, sleep} from "../ts/helper";
     import {type dataSum, type dataUser, type dataUserSession} from "../ts/api";
-    import {type activeUser, activeUserStore, dataStore} from "../ts/global";
+    import {type userActive, userActiveStore, dataStore, type userInput} from "../ts/global";
 
+    export let userInputList: userInput[] = [];
     export let aspElement: HTMLSpanElement;
     let chElement: HTMLCanvasElement;
     let data: dataSum = {dates: [], users: []};
-
-    let users: activeUser[] = [];
-
-    activeUserStore.subscribe(async (value: activeUser[]) => {
-        if (value) users = value;
-    });
 
     Chart.register(LinearScale, BarController, BarElement, PointElement, Tooltip);
     let chart: Chart<"bar", (number[] | undefined)[], number> | undefined;
@@ -146,7 +141,7 @@
             chart.options.scales.x.max = null;
 
             chart.update();
-            activeUserStore.set([]);
+            userActiveStore.set([]);
         }
 
         if (!value || !value.dates || !value.users) {
@@ -165,7 +160,7 @@
         //@ts-ignore
         chart.options.scales.x.max = Math.trunc(rangeMax.valueOf() / 60 / 60 / 24 / 1000);
 
-        let aUsers: activeUser[] = [];
+        let aUsers: userActive[] = [];
 
         for (let i = 0; i < data.users.length; i++) {
             if (!data.users[i].sessions) {
@@ -173,27 +168,10 @@
             }
 
             let color: string = "";
-            for (const s of users) {
-                if (s.name.toLowerCase() == data.users[i].name.toLowerCase()) {
-                    color = s.color;
-                }
-            }
-
-            if (color == "") {
-                color = getPaletteColor();
-                let ttl = 0;
-
-                for (let j = 0; j < users.length; j++) {
-                    if (users[j].color == color) {
-                        color = getPaletteColor();
-
-                        if (ttl > users.length * users.length) {
-                            continue;
-                        }
-
-                        ttl = ttl + 1;
-                        j = -1;
-                    }
+            for (const u of userInputList) {
+                if (u.text.toLowerCase() == data.users[i].name.toLowerCase()) {
+                    color = u.color;
+                    break;
                 }
             }
 
@@ -218,7 +196,7 @@
         }
 
         chart.update();
-        activeUserStore.set(aUsers);
+        userActiveStore.set(aUsers);
     });
 </script>
 
