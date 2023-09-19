@@ -6,7 +6,7 @@
     import {infoStore, type userInput, userInputStore} from "./lib/ts/global.js";
     import UserInput from "./lib/components/UserInput.svelte";
 
-    let info: infoSum = {build: "", users: []};
+    let info: infoSum = {build: "", users: [], selected_users: 0};
     let infoUserInput: userInput[] = [];
 
     let aspElement: HTMLSpanElement;
@@ -16,7 +16,7 @@
     infoStore.subscribe((value: infoSum) => {
         if (value) {
             info = value;
-            infoUserInput = info.users.map((u: string) => ({"text": u}))
+            infoUserInput = info.users.map((u: string) => ({text: u, color: ""}))
         }
     });
 
@@ -42,8 +42,18 @@
         let urlUsers = urlParams.get("users");
         let urlUsersInput: userInput[] = [];
         if (urlUsers) {
-            urlUsersInput = urlUsers.split(",").map((u: string) => {
-                return {text: u, color: ""}
+            let urlUsersList: string[] = urlUsers.split(",").filter((u: string) => {
+                for (const uInfo of info.users) {
+                    if (uInfo == u) {
+                        return true;
+                    }
+                }
+
+                return false;
+            })
+
+            urlUsersInput = urlUsersList.map((u: string) => {
+                return {text: u, color: ""};
             });
         } else {
             urlUsersInput = info.users.slice(0, info.selected_users).map((u: string) => {

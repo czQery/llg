@@ -45,6 +45,8 @@ func Info(c *fiber.Ctx) error {
 			}
 		}
 
+		name = strings.ReplaceAll(name, "-login", "")
+
 		users = append(users, name)
 	}
 
