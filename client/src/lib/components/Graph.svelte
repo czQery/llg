@@ -152,8 +152,11 @@
 
         chart.data.labels = data.dates;
 
-        let rangeMin = new Date(new Date().getFullYear(), (new Date(data.dates[0] * 60 * 60 * 24 * 1000).getMonth()), 2);
-        let rangeMax = new Date(new Date().getFullYear(), (new Date(data.dates[0] * 60 * 60 * 24 * 1000).getMonth()) + 1, 1);
+        let startDate = new Date(data.dates[0] * 60 * 60 * 24 * 1000);
+        let endDate = new Date(data.dates[0] * 60 * 60 * 24 * 1000);
+
+        let rangeMin = new Date(startDate.getFullYear(), startDate.getMonth(), 2);
+        let rangeMax = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 1);
 
         //@ts-ignore
         chart.options.scales.x.min = Math.trunc(rangeMin.valueOf() / 60 / 60 / 24 / 1000);
