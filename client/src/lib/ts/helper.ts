@@ -21,6 +21,11 @@ export const formatDate = (value: number): string => {
     return date.getDate().toString()+"."+(date.getMonth()+1).toString()+".";
 }
 
+export const formatDateFull = (value: number): string => {
+    let date = new Date(value * 60 * 60 * 24 * 1000);
+    return date.getDate().toString()+"."+(date.getMonth()+1).toString()+"."+date.getFullYear().toString();
+}
+
 export const formatDuration = (minutes: number): string => {
     if (minutes >= 60) {
         return (minutes / 60).toFixed(1).replace(".0", "") + "h";

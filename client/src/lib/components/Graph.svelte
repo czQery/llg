@@ -1,6 +1,6 @@
 <script lang="ts">
     import {BarController, BarElement, Chart, LinearScale, PointElement, Tooltip} from "chart.js";
-    import {formatDate, formatDuration, formatTime, getPaletteColor, sleep} from "../ts/helper";
+    import {formatDate, formatDuration, formatTime, sleep} from "../ts/helper";
     import {type dataSum, type dataUser, type dataUserSession} from "../ts/api";
     import {type userActive, userActiveStore, dataStore, type userInput} from "../ts/global";
 
@@ -56,13 +56,13 @@
                             title: (items) => {
                                 //@ts-ignore
                                 let session: number = items[0]["raw"]["y"][1] - items[0]["raw"]["y"][0];
-                                let today = 0;
+                                let day = 0;
 
                                 for (const d of items[0]["dataset"]["data"]) {
                                     //@ts-ignore
                                     if (d["x"] == items[0]["raw"]["x"]) {
                                         //@ts-ignore
-                                        today = today + (d["y"][1] - d["y"][0]);
+                                        day = day + (d["y"][1] - d["y"][0]);
                                     }
                                 }
 
@@ -73,11 +73,11 @@
                                     device = "\nPC: " + raw.device.split(" ")[0] + "\nIP: " + raw.device.split(" ")[1].replace("(", "").replace(")", "") + "\n";
                                 }
 
-                                return "User: " + items[0]["dataset"]["label"] + device + "\nSession: " + formatDuration(session) + "\nToday: " + formatDuration(today);
+                                return "User: " + items[0]["dataset"]["label"] + device + "\nSession: " + formatDuration(session) + "\nDay: " + formatDuration(day);
                             },
                             label: (item) => {
                                 //@ts-ignore
-                                return formatTime(item["raw"]["y"][0]) + "-" + formatTime(item["raw"]["y"][1]);
+                                return [formatTime(item["raw"]["y"][0]) + " - " + formatTime(item["raw"]["y"][1]) + " (" + formatDate(item["raw"]["x"])+")"];
                             },
                         }
                     }
