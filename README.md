@@ -17,6 +17,7 @@
 ### Config format
 ```json
 {
+  "address": ":8893",
   "path": "/path/to/data",
   "selected_users": 3
 }
