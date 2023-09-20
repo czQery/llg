@@ -139,7 +139,7 @@ func Data(c *fiber.Ctx) error {
 				}
 
 				// over midnight check
-				if timeStart.Unix() > timeEnd.Unix() {
+				if dateOver.Unix() > date.Unix() {
 					searchDateList[searchLogin[3]] = date.Unix() / 60 / 60 / 24
 					searchDateList[fileP[3]] = dateOver.Unix() / 60 / 60 / 24
 
