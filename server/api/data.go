@@ -104,17 +104,20 @@ func Data(c *fiber.Ctx) error {
 		)
 
 		// read all lines in file
-		for _, fileLine := range strings.Split(string(fileData), "\n") {
+		for fileLineIndex, fileLine := range strings.Split(string(fileData), "\n") {
 
 			fileLine = strings.ReplaceAll(fileLine, "\r", "")
 			fileP := strings.Split(fileLine, ";")
 			dbgLines = dbgLines + 1
 
 			// mark session start
-			if fileP[0] == "login" && !search {
-				search = true
-				searchName = fileP[1]
-				searchLogin = fileP
+			if fileP[0] == "login" {
+				if !search || fileLineIndex == len(strings.Split(string(fileData), "\n"))-1 {
+					search = true
+					searchName = fileP[1]
+					searchLogin = fileP
+					continue
+				}
 			}
 
 			// mark session end
@@ -155,6 +158,18 @@ func Data(c *fiber.Ctx) error {
 				search = false
 			}
 		}
+
+		// add currently ongoing session
+		if search {
+			date, _ := time.Parse(timeLayout, searchLogin[3]+"-00:00")
+
+			timeStart, _ := time.Parse(timeLayout, "01.01.1970-"+searchLogin[4])
+			timeEnd, _ := time.Parse(timeLayout, "01.01.1970-"+time.Now().Format("15:04"))
+
+			searchSessionList = append(searchSessionList, DataUserSession{Date: date.Unix() / 60 / 60 / 24, Device: searchLogin[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
+			searchDateList[searchLogin[3]] = date.Unix() / 60 / 60 / 24
+		}
+
 		if len(searchSessionList) > 0 {
 			dataUsers = append(dataUsers, DataUser{Name: searchName, Sessions: searchSessionList})
 		}
