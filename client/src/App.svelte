@@ -188,6 +188,10 @@
         flex-direction: column;
     }
 
+    :global(.sv-dropdown-scroll.is-empty) {
+        height: 4px;
+    }
+
     :global(.sv-control.is-active > .has-multiSelection > div) {
         width: 100%;
     }
@@ -208,7 +212,7 @@
         grid-row: 1/2;
         color: #FFF;
         font-weight: 600;
-        text-align: center;
+        text-align: left;
         height: 70px;
         line-height: 70px;
         margin: 0;
@@ -318,11 +322,6 @@
             grid-template-rows: min-content repeat(2, 70px);
         }
 
-        #header a {
-            text-align: left;
-            border-right: none;
-        }
-
         #header form {
             grid-column: 1/2;
             grid-row: 2/3;
@@ -330,6 +329,8 @@
             gap: 10px;
             color: #FFF;
             text-align: right;
+            border-left: none;
+            padding-left: 5px;
         }
 
         #header-asp {
