@@ -110,6 +110,10 @@ func Data(c *fiber.Ctx) error {
 			fileP := strings.Split(fileLine, ";")
 			dbgLines = dbgLines + 1
 
+			if len(fileP) < 5 {
+				continue
+			}
+
 			// mark session start
 			if fileP[0] == "login" {
 				if !search || fileLineIndex == len(strings.Split(string(fileData), "\n"))-1 {
@@ -129,8 +133,15 @@ func Data(c *fiber.Ctx) error {
 				timeEnd, _ := time.Parse(timeLayout, "01.01.1970-"+fileP[4])
 
 				// date sanity check
-				if date.Unix() < 0 {
-					tl.Log("api", "data - session: "+fileP[1]+" invalid date: "+searchLogin[3], "warn")
+				if date.Unix() < 0 || dateOver.Unix() < 0 {
+					tl.Log("api", "data - session: "+fileP[1]+" invalid date: "+searchLogin[3]+", "+fileP[3], "warn")
+					search = false
+					continue
+				}
+
+				// time sanity check
+				if timeStart.Unix() < 0 || timeEnd.Unix() < 0 {
+					tl.Log("api", "data - session: "+fileP[1]+" invalid time: "+searchLogin[4]+", "+fileP[4], "warn")
 					search = false
 					continue
 				}
