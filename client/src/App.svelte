@@ -184,6 +184,10 @@
         height: 0 !important;
     }
 
+    :global(.sv-item) {
+        margin: 2px !important;
+    }
+
     :global(.sv-dropdown .has-multiSelection) {
         flex-direction: column;
     }

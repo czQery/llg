@@ -101,6 +101,7 @@ func Data(c *fiber.Ctx) error {
 			searchName        string
 			searchLogin       []string
 			searchSessionList []DataUserSession
+			searchLoginSkips  int
 		)
 
 		// read all lines in file
@@ -121,6 +122,8 @@ func Data(c *fiber.Ctx) error {
 					searchName = fileP[1]
 					searchLogin = fileP
 					continue
+				} else {
+					searchLoginSkips = searchLoginSkips + 1
 				}
 			}
 
