@@ -1,14 +1,15 @@
 package api
 
 import (
-	"github.com/czQery/llg/tl"
-	"github.com/gofiber/fiber/v2"
 	"net/url"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/czQery/llg/tl"
+	"github.com/gofiber/fiber/v2"
 )
 
 type DataSum struct {
@@ -112,7 +113,14 @@ func Data(c *fiber.Ctx) error {
 			dbgLines = dbgLines + 1
 
 			if len(fileP) < 5 {
-				continue
+				// skip new line on end in order to have currently ongoing session
+				if fileLineIndex == len(strings.Split(string(fileData), "\n"))-1 && fileLineIndex > 0 {
+					fileLine = strings.Split(string(fileData), "\n")[fileLineIndex-1]
+					fileLine = strings.ReplaceAll(fileLine, "\r", "")
+					fileP = strings.Split(fileLine, ";")
+				} else {
+					continue
+				}
 			}
 
 			// mark session start
@@ -174,7 +182,7 @@ func Data(c *fiber.Ctx) error {
 		}
 
 		// add currently ongoing session
-		if search {
+		if search && time.Now().Format("02.01.2006") == searchLogin[3] {
 			date, _ := time.Parse(timeLayout, searchLogin[3]+"-00:00")
 
 			timeStart, _ := time.Parse(timeLayout, "01.01.1970-"+searchLogin[4])
