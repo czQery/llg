@@ -101,12 +101,14 @@ func Data(c *fiber.Ctx) error {
 			search            bool
 			searchName        string
 			searchLogin       []string
+			searchLogoff      []string
 			searchSessionList []DataUserSession
-			searchLoginSkips  int
 		)
 
+		fileLines := strings.Split(string(fileData), "\n")
+
 		// read all lines in file
-		for fileLineIndex, fileLine := range strings.Split(string(fileData), "\n") {
+		for fileLineIndex, fileLine := range fileLines {
 
 			fileLine = strings.ReplaceAll(fileLine, "\r", "")
 			fileP := strings.Split(fileLine, ";")
@@ -114,8 +116,8 @@ func Data(c *fiber.Ctx) error {
 
 			if len(fileP) < 5 {
 				// skip new line on end in order to have currently ongoing session
-				if fileLineIndex == len(strings.Split(string(fileData), "\n"))-1 && fileLineIndex > 0 {
-					fileLine = strings.Split(string(fileData), "\n")[fileLineIndex-1]
+				if fileLineIndex == len(fileLines)-1 && fileLineIndex > 0 {
+					fileLine = fileLines[fileLineIndex-1]
 					fileLine = strings.ReplaceAll(fileLine, "\r", "")
 					fileP = strings.Split(fileLine, ";")
 				} else {
@@ -125,26 +127,41 @@ func Data(c *fiber.Ctx) error {
 
 			// mark session start
 			if fileP[0] == "login" {
-				if !search || fileLineIndex == len(strings.Split(string(fileData), "\n"))-1 {
+				if !search || fileLineIndex == len(fileLines)-1 {
 					search = true
 					searchName = fileP[1]
 					searchLogin = fileP
 					continue
-				} else {
-					searchLoginSkips = searchLoginSkips + 1
 				}
 			}
 
 			// mark session end
-			if fileP[0] == "logoff" && search {
-				date, _ := time.Parse(timeLayout, searchLogin[3]+"-00:00")
-				dateOver, _ := time.Parse(timeLayout, fileP[3]+"-00:00")
+			if fileP[0] == "logoff" {
 
-				timeStart, _ := time.Parse(timeLayout, "01.01.1970-"+searchLogin[4])
-				timeEnd, _ := time.Parse(timeLayout, "01.01.1970-"+fileP[4])
+				var (
+					timeStart time.Time
+					timeEnd   time.Time
+
+					dateStart time.Time
+					dateEnd   time.Time
+				)
+
+				timeEnd, _ = time.Parse(timeLayout, "01.01.1970-"+fileP[4])
+				dateEnd, _ = time.Parse(timeLayout, fileP[3]+"-00:00")
+
+				if search { // login as start
+					timeStart, _ = time.Parse(timeLayout, "01.01.1970-"+searchLogin[4])
+					dateStart, _ = time.Parse(timeLayout, searchLogin[3]+"-00:00")
+				} else if len(searchLogoff) > 4 && fileP[3] == searchLogoff[3] { // missing login => previous logoff in same day as login
+					timeStart, _ = time.Parse(timeLayout, "01.01.1970-"+searchLogoff[4])
+					dateStart, _ = time.Parse(timeLayout, searchLogoff[3]+"-00:00")
+				} else { // missing login & logoff => 00:00 as login
+					timeStart, _ = time.Parse(timeLayout, "01.01.1970-00:00")
+					dateStart = dateEnd
+				}
 
 				// date sanity check
-				if date.Unix() < 0 || dateOver.Unix() < 0 {
+				if dateStart.Unix() < 0 || dateEnd.Unix() < 0 {
 					tl.Log("api", "data - session: "+fileP[1]+" invalid date: "+searchLogin[3]+", "+fileP[3], "warn")
 					search = false
 					continue
@@ -158,25 +175,27 @@ func Data(c *fiber.Ctx) error {
 				}
 
 				// selected month check
-				if date.Year() != dateParam.Year() || date.Month() != dateParam.Month() || dateOver.Year() != dateParam.Year() || dateOver.Month() != dateParam.Month() {
+				if dateStart.Year() != dateParam.Year() || dateStart.Month() != dateParam.Month() || dateEnd.Year() != dateParam.Year() || dateEnd.Month() != dateParam.Month() {
 					search = false
 					continue
 				}
+
+				searchLogoff = fileP
 
 				// over midnight check
-				if dateOver.Unix() > date.Unix() {
-					searchDateList[searchLogin[3]] = date.Unix() / 60 / 60 / 24
-					searchDateList[fileP[3]] = dateOver.Unix() / 60 / 60 / 24
+				if dateEnd.Unix() > dateStart.Unix() {
+					searchDateList[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
+					searchDateList[fileP[3]] = dateEnd.Unix() / 60 / 60 / 24
 
-					searchSessionList = append(searchSessionList, DataUserSession{Date: date.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
-					searchSessionList = append(searchSessionList, DataUserSession{Date: dateOver.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{0, int(timeEnd.Unix() / 60)}})  // midnight to end
+					searchSessionList = append(searchSessionList, DataUserSession{Date: dateStart.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+					searchSessionList = append(searchSessionList, DataUserSession{Date: dateEnd.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{0, int(timeEnd.Unix() / 60)}})        // midnight to end
 
 					search = false
 					continue
 				}
 
-				searchSessionList = append(searchSessionList, DataUserSession{Date: date.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
-				searchDateList[searchLogin[3]] = date.Unix() / 60 / 60 / 24
+				searchSessionList = append(searchSessionList, DataUserSession{Date: dateStart.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
+				searchDateList[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
 				search = false
 			}
 		}
