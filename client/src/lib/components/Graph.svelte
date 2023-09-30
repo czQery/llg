@@ -178,6 +178,15 @@
                 }
             }
 
+            if (color === "") {
+                for (const u of userInputList) {
+                    if (u.text.toLowerCase().includes(data.users[i].name.toLowerCase())) {
+                        color = u.color;
+                        break;
+                    }
+                }
+            }
+
             chart.data.datasets.push({
                 label: data.users[i].name,
                 backgroundColor: color,
