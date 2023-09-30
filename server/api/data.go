@@ -127,6 +127,20 @@ func Data(c *fiber.Ctx) error {
 
 			// mark session start
 			if fileP[0] == "login" {
+				if search && searchLogin[3] != fileP[3] {
+					timeStart, _ := time.Parse(timeLayout, "01.01.1970-"+searchLogin[4])
+					dateStart, _ := time.Parse(timeLayout, searchLogin[3]+"-00:00")
+
+					// time & date sanity check
+					if timeStart.Unix() < 0 || dateStart.Unix() < 0 {
+						tl.Log("api", "data - session: "+fileP[1]+" invalid date: "+searchLogin[3]+" or time: "+searchLogin[4], "warn")
+					} else {
+						searchSessionList = append(searchSessionList, DataUserSession{Date: dateStart.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+					}
+
+					search = false
+				}
+
 				if !search || fileLineIndex == len(fileLines)-1 {
 					search = true
 					searchName = fileP[1]
