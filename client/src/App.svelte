@@ -1,9 +1,9 @@
 <script lang="ts">
     import {getDate, getPaletteColor, sleep} from "./lib/ts/helper";
     import Graph from "./lib/components/Graph.svelte";
-    import {type infoSum, loadData, loadInfo} from "./lib/ts/api";
+    import {type infoSum, type dataSum, loadData, loadInfo} from "./lib/ts/api";
     import SumGraph from "./lib/components/SumGraph.svelte";
-    import {infoStore, type userInput, userInputStore} from "./lib/ts/global.js";
+    import {infoStore, type userInput, userInputStore, dataStore} from "./lib/ts/global.js";
     import UserInput from "./lib/components/UserInput.svelte";
 
     let info: infoSum = {build: "", users: [], selected_users: 0};
@@ -105,6 +105,11 @@
             return u.text
         })).toString());
         window.history.pushState(null, "", url.toString());
+
+        if (userInputList.length === 0) {
+            dataStore.set({} as dataSum);
+            return;
+        }
 
         await loadData("?date=" + encodeURIComponent(dateInputElement.value) + "&users=" + encodeURIComponent((userInputList.map((u: userInput) => {
             return u.text
