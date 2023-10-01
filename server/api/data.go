@@ -133,9 +133,13 @@ func Data(c *fiber.Ctx) error {
 
 					// time & date sanity check
 					if timeStart.Unix() < 0 || dateStart.Unix() < 0 {
-						tl.Log("api", "data - session: "+fileP[1]+" invalid date: "+searchLogin[3]+" or time: "+searchLogin[4], "warn")
+						tl.Log("api", "data - session: "+searchLogin[1]+" invalid date: "+searchLogin[3]+" or time: "+searchLogin[4], "warn")
 					} else {
-						searchSessionList = append(searchSessionList, DataUserSession{Date: dateStart.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+						// selected month check
+						if dateStart.Year() == dateParam.Year() && dateStart.Month() == dateParam.Month() {
+							searchSessionList = append(searchSessionList, DataUserSession{Date: dateStart.Unix() / 60 / 60 / 24, Device: searchLogin[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+							searchDateList[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
+						}
 					}
 
 					search = false
@@ -201,8 +205,11 @@ func Data(c *fiber.Ctx) error {
 					searchDateList[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
 					searchDateList[fileP[3]] = dateEnd.Unix() / 60 / 60 / 24
 
-					searchSessionList = append(searchSessionList, DataUserSession{Date: dateStart.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
-					searchSessionList = append(searchSessionList, DataUserSession{Date: dateEnd.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{0, int(timeEnd.Unix() / 60)}})        // midnight to end
+					searchSessionList = append(searchSessionList, DataUserSession{Date: dateStart.Unix() / 60 / 60 / 24, Device: searchLogin[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+					searchSessionList = append(searchSessionList, DataUserSession{Date: dateEnd.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{0, int(timeEnd.Unix() / 60)}})              // midnight to end
+
+					searchDateList[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
+					searchDateList[fileP[3]] = dateEnd.Unix() / 60 / 60 / 24
 
 					search = false
 					continue
@@ -216,13 +223,21 @@ func Data(c *fiber.Ctx) error {
 
 		// add currently ongoing session
 		if search && time.Now().Format("02.01.2006") == searchLogin[3] {
-			date, _ := time.Parse(timeLayout, searchLogin[3]+"-00:00")
+			dateStart, _ := time.Parse(timeLayout, searchLogin[3]+"-00:00")
 
 			timeStart, _ := time.Parse(timeLayout, "01.01.1970-"+searchLogin[4])
 			timeEnd, _ := time.Parse(timeLayout, "01.01.1970-"+time.Now().Format("15:04"))
 
-			searchSessionList = append(searchSessionList, DataUserSession{Date: date.Unix() / 60 / 60 / 24, Device: searchLogin[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
-			searchDateList[searchLogin[3]] = date.Unix() / 60 / 60 / 24
+			// time & date sanity check
+			if timeStart.Unix() < 0 || dateStart.Unix() < 0 {
+				tl.Log("api", "data - session: "+searchLogin[1]+" invalid date: "+searchLogin[3]+" or time: "+searchLogin[4], "warn")
+			} else {
+				// selected month check
+				if dateStart.Year() == dateParam.Year() && dateStart.Month() == dateParam.Month() {
+					searchSessionList = append(searchSessionList, DataUserSession{Date: dateStart.Unix() / 60 / 60 / 24, Device: searchLogin[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
+					searchDateList[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
+				}
+			}
 		}
 
 		if len(searchSessionList) > 0 {
