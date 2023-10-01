@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"strings"
+
 	"github.com/czQery/llg/api"
 	"github.com/czQery/llg/tl"
 	"github.com/gofiber/fiber/v2"
@@ -13,6 +15,7 @@ func main() {
 	tl.Log("main", "build: "+tl.Build, "info")
 
 	tl.LoadConfig()
+	tl.LoadDist()
 
 	r := fiber.New(fiber.Config{
 		CaseSensitive:         false,
@@ -21,6 +24,7 @@ func main() {
 		BodyLimit:             100 * 1024 * 1024,
 		JSONEncoder:           json.Marshal,
 		JSONDecoder:           json.Unmarshal,
+		ServerHeader:          "llg",
 	})
 
 	// API
@@ -32,7 +36,13 @@ func main() {
 
 	// Default
 	r.Use(func(c *fiber.Ctx) error {
-		return c.Status(404).JSON(api.Response{Message: "unknown endpoint"})
+		if strings.HasPrefix(string(c.Request().URI().Path()), "/api") {
+			return c.Status(404).JSON(api.Response{Message: "unknown endpoint"})
+		} else if !tl.Dist {
+			return c.Status(503).JSON(api.Response{Message: "front-end unavailable"})
+		} else {
+			return c.Redirect("/", 307)
+		}
 	})
 
 	tl.Log("fiber", "started!", "info")

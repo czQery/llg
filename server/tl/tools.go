@@ -31,3 +31,17 @@ func LoadConfig() {
 
 	Log("config", "successfully loaded!", "info")
 }
+
+var Dist bool
+
+func LoadDist() {
+	_, err := os.ReadDir("./dist")
+	if err != nil {
+		Dist = false
+		Log("dist", "load failed: "+err.Error(), "warn")
+		return
+	}
+
+	Dist = true
+	Log("dist", "successfully loaded!", "info")
+}
