@@ -90,6 +90,7 @@
         }, 50)
     }
 
+    let renderLast: string = "";
     const render = async () => {
         let dateP = Date.parse(dateInputElement.value);
         if (!dateP) {
@@ -111,9 +112,17 @@
             return;
         }
 
-        await loadData("?date=" + encodeURIComponent(dateInputElement.value) + "&users=" + encodeURIComponent((userInputList.map((u: userInput) => {
+        let param = "?date=" + encodeURIComponent(dateInputElement.value) + "&users=" + encodeURIComponent((userInputList.map((u: userInput) => {
             return u.text
-        })).toString()));
+        })).toString())
+
+        if (renderLast === param) {
+            return;
+        }
+
+        renderLast = param
+
+        await loadData(param);
     }
 
     (async () => {
