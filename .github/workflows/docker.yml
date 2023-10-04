@@ -52,7 +52,7 @@ jobs:
         run: go mod download
 
       - name: Go build
-        working-directory: ./client
+        working-directory: ./server
         env:
           GOOS: linux
           GOARCH: amd64
