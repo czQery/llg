@@ -127,7 +127,15 @@ func Data(c *fiber.Ctx) error {
 
 			// mark session start
 			if fileP[0] == "login" {
-				if search && searchLogin[3] != fileP[3] {
+				if !search && fileLineIndex == len(fileLines)-1 {
+					search = true
+					searchName = fileP[1]
+					searchLogin = fileP
+				}
+
+				// fill login to midnight if (the closest login is the next day || this is the last login in log)
+				if search && (searchLogin[3] != fileP[3] || (fileLineIndex == len(fileLines)-1 && time.Now().Format("02.01.2006") != searchLogin[3])) {
+
 					timeStart, _ := time.Parse(timeLayout, "01.01.1970-"+searchLogin[4])
 					dateStart, _ := time.Parse(timeLayout, searchLogin[3]+"-00:00")
 
@@ -145,7 +153,7 @@ func Data(c *fiber.Ctx) error {
 					search = false
 				}
 
-				if !search || fileLineIndex == len(fileLines)-1 {
+				if !search {
 					search = true
 					searchName = fileP[1]
 					searchLogin = fileP
