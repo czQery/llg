@@ -24,7 +24,7 @@ jobs:
             asset_name: llg_windows_amd64
 
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
