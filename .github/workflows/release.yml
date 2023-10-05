@@ -36,9 +36,6 @@ jobs:
         with:
           credentials: ${{secrets.GIT_TOKEN}}
 
-      - name: Create release folder
-        run: mkdir ../${{ matrix.asset_name }}
-
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
@@ -54,7 +51,7 @@ jobs:
         working-directory: ./client
         run: |
           npm run build
-          cp -r dist ../${{ matrix.asset_name }}/dist
+          mkdir -p ../${{ matrix.asset_name }}/dist && cp -r dist ../${{ matrix.asset_name }}/dist
 
       - name: Set up Go
         uses: actions/setup-go@v4
