@@ -66,15 +66,13 @@ jobs:
       - name: Go build
         working-directory: ./server
         env:
-          GOOS: linux
-          GOARCH: amd64
           CGO_ENABLED: 0
         run: |
-          go build -o llg -ldflags="-X github.com/czQery/llg/tl.Build=${{ github.event.release.tag_name }}"
+          go build -o ${{ matrix.artifact_name }} -ldflags="-X github.com/czQery/llg/tl.Build=${{ github.event.release.tag_name }}"
           cp -r ${{ matrix.artifact_name }} ../${{ matrix.asset_name }}
           cp .config.json ../${{ matrix.asset_name }}/config.json
 
-      - name: Compress release
+      - name: Compress release - zip
         if: startsWith(runner.os, 'windows')
         uses: thedoctor0/zip-release@0.7.1
         with:
@@ -82,7 +80,7 @@ jobs:
           path: ${{ matrix.asset_name }}
           filename: "${{ matrix.asset_name }}.zip"
 
-      - name: Compress release
+      - name: Compress release - tar
         if: startsWith(runner.os, 'linux')
         uses: thedoctor0/zip-release@0.7.1
         with:
@@ -90,7 +88,7 @@ jobs:
           path: ${{ matrix.asset_name }}
           filename: "${{ matrix.asset_name }}.tar.gz"
 
-      - name: Upload release
+      - name: Upload release - zip
         if: startsWith(runner.os, 'windows')
         uses: svenstaro/upload-release-action@v2
         with:
@@ -99,7 +97,7 @@ jobs:
           asset_name: "${{ matrix.asset_name }}.zip"
           tag: ${{ github.ref }}
 
-      - name: Upload release
+      - name: Upload release - tar
         if: startsWith(runner.os, 'linux')
         uses: svenstaro/upload-release-action@v2
         with:
