@@ -85,7 +85,7 @@ jobs:
         uses: thedoctor0/zip-release@0.7.1
         with:
           type: "tar"
-          directory: ${{ matrix.asset_name }}/*
+          directory: ${{ matrix.asset_name }}
           filename: "${{ matrix.asset_name }}.tar.gz"
 
       - name: Upload release - zip
