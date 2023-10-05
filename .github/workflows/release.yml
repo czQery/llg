@@ -76,7 +76,7 @@ jobs:
 
       - name: Compress release
         if: startsWith(runner.os, 'windows')
-        uses: thedoctor0/zip-release@0.7
+        uses: thedoctor0/zip-release@0.7.1
         with:
           type: "zip"
           path: ${{ matrix.asset_name }}
@@ -84,7 +84,7 @@ jobs:
 
       - name: Compress release
         if: startsWith(runner.os, 'linux')
-        uses: thedoctor0/zip-release@0.7
+        uses: thedoctor0/zip-release@0.7.1
         with:
           type: "tar"
           path: ${{ matrix.asset_name }}
