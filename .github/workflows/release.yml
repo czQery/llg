@@ -36,6 +36,9 @@ jobs:
         with:
           credentials: ${{secrets.GIT_TOKEN}}
 
+      - name: Create release folder
+        run: mkdir ../${{ matrix.asset_name }}
+
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
