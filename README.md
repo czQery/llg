@@ -13,10 +13,12 @@
   <br>
 </p>
 
-##  <a href="#installation" id="installation" name="installation">Installation</a>
+# <a href="#installation" id="installation" name="installation">Installation</a>
 
 ### <a href="#installation-manual" id="installation-manual" name="installation-manual">Manual</a>
+
 Linux:
+
 ```sh
 curl -L https://github.com/czQery/llg/releases/latest/download/llg_linux_amd64.tar.gz | tar -xz
 cd llg_linux_amd64
@@ -24,6 +26,7 @@ cd llg_linux_amd64
 ```
 
 Windows:
+
 ```sh
 curl -L https://github.com/czQery/llg/releases/latest/download/llg_windows_amd64.zip | tar -x
 cd llg_windows_amd64
@@ -33,6 +36,7 @@ cd llg_windows_amd64
 ### <a href="#installation-docker" id="installation-docker" name="installation-docker">Docker</a>
 
 Docker Compose:
+
 ```yml
 version: '3'
 services:
@@ -47,15 +51,17 @@ services:
     tty: true
 ```
 
-##  <a href="#format" id="format" name="format">Data format</a>
+# <a href="#format" id="format" name="format">Data format</a>
 
 - user1.log
+
 ```
 login;user1;PC (0.0.0.0);01.01.1970;00:00
 logoff;user1;PC (0.0.0.0);01.01.1970;00:01
 ```
 
 - user2.log
+
 ```
 login;user2;PC (0.0.0.0);01.01.1970;00:00
 logoff;user2;PC (0.0.0.0);01.01.1970;00:01
