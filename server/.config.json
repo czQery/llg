@@ -1,5 +1,5 @@
 {
   "address": ":8893",
-  "path": "/path/to/data",
+  "path": "./data/",
   "selected_users": 3
 }
