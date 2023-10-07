@@ -16,7 +16,9 @@
     infoStore.subscribe((value: infoSum) => {
         if (value) {
             info = value;
-            infoUserInput = info.users.map((u: string) => ({text: u, color: ""}))
+            if (info.users) {
+                infoUserInput = info.users.map((u: string) => ({text: u, color: ""}));
+            }
         }
     });
 
@@ -43,9 +45,12 @@
         let urlUsersInput: userInput[] = [];
         if (urlUsers) {
             let urlUsersList: string[] = urlUsers.split(",").filter((u: string) => {
-                for (const uInfo of info.users) {
-                    if (uInfo == u) {
-                        return true;
+
+                if (info.users) {
+                    for (const uInfo of info.users) {
+                        if (uInfo == u) {
+                            return true;
+                        }
                     }
                 }
 
@@ -56,9 +61,11 @@
                 return {text: u, color: ""};
             });
         } else {
-            urlUsersInput = info.users.slice(0, info.selected_users).map((u: string) => {
-                return {text: u, color: ""}
-            });
+            if (info.users) {
+                urlUsersInput = info.users.slice(0, info.selected_users).map((u: string) => {
+                    return {text: u, color: ""}
+                });
+            }
         }
 
         for (const u of urlUsersInput) {
