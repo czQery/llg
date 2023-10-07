@@ -28,7 +28,8 @@ cd llg_linux_amd64
 Windows:
 
 ```sh
-curl -L https://github.com/czQery/llg/releases/latest/download/llg_windows_amd64.zip | tar -x
+curl.exe -L https://github.com/czQery/llg/releases/latest/download/llg_windows_amd64.zip
+tar -xf .\llg_windows_amd64.zip
 cd llg_windows_amd64
 ./llg.exe
 ```
