@@ -1,9 +1,6 @@
 <p align="center" style="text-align: center">
   <img src="https://github.com/czQery/llg/blob/main/.github/banner.png?raw=true" alt="Logo">
   <br>
-  <a href="https://goreportcard.com/report/czQery/llg">
-    <img src="https://goreportcard.com/badge/github.com/czQery/llg" alt="go report"/>
-  </a>
   <a href="https://github.com/czQery/llg/actions">
     <img src="https://img.shields.io/github/actions/workflow/status/czQery/llg/release.yml" alt="build"/>
   </a>
