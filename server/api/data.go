@@ -76,7 +76,7 @@ func Data(c *fiber.Ctx) error {
 
 	// read all files in specified folder
 	for _, file := range files {
-		if file.IsDir() {
+		if file.IsDir() || !strings.HasSuffix(file.Name(), ".log") {
 			continue
 		}
 
