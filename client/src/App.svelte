@@ -17,7 +17,7 @@
         if (value) {
             info = value;
             if (info.users) {
-                infoUserInput = info.users.map((u: string) => ({text: u, color: ""}));
+                infoUserInput = info.users.map((u: string) => ({value: u, color: ""}));
             }
         }
     });
@@ -58,12 +58,12 @@
             })
 
             urlUsersInput = urlUsersList.map((u: string) => {
-                return {text: u, color: ""};
+                return {value: u, color: ""};
             });
         } else {
             if (info.users) {
                 urlUsersInput = info.users.slice(0, info.selected_users).map((u: string) => {
-                    return {text: u, color: ""}
+                    return {value: u, color: ""}
                 });
             }
         }
@@ -73,7 +73,7 @@
             let ttl = 0;
 
             for (let i = 0; i < urlUsersInput.length; i++) {
-                if (urlUsersInput[i].color == color && urlUsersInput[i].text != u.text) {
+                if (urlUsersInput[i].color == color && urlUsersInput[i].value != u.value) {
                     color = getPaletteColor();
 
                     if (ttl > urlUsersInput.length * urlUsersInput.length) {
@@ -110,7 +110,7 @@
         const url = new URL(window.location.toString());
         url.searchParams.set("date", getDate(date));
         url.searchParams.set("users", (userInputList.map((u: userInput) => {
-            return u.text
+            return u.value
         })).toString());
         window.history.replaceState(null, "", url.toString());
 
@@ -120,7 +120,7 @@
         }
 
         let param = "?date=" + encodeURIComponent(dateInputElement.value) + "&users=" + encodeURIComponent((userInputList.map((u: userInput) => {
-            return u.text
+            return u.value
         })).toString())
 
         if (renderLast === param) {
@@ -161,8 +161,17 @@
                        bind:this={dateInputElement}/>
             </div>
             <div>
-                <label for="users">Users:</label>
-                <UserInput userList={infoUserInput}/>
+                <label for="data">Data:</label>
+                <UserInput op={[
+                    {
+                        groupHeader: "Users",
+                        items: infoUserInput
+                    },
+                    {
+                        groupHeader: "Devices",
+                        items: infoUserInput
+                    }
+                ]}/>
             </div>
         </form>
         <div id="header-asp">
@@ -215,6 +224,10 @@
 
     :global(.sv-dropdown-scroll.is-empty) {
         height: 4px;
+    }
+
+    :global(.sv-dropdown-scroll .sv-group-header) {
+        color: #000;
     }
 
     :global(.sv-control.is-active > .has-multiSelection > div) {

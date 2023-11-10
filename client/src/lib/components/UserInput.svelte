@@ -5,7 +5,7 @@
     import type {userInput} from "../ts/global";
     import {userInputStore} from "../ts/global";
 
-    export let userList: userInput[] = [];
+    export let op: object = [];
     let userListSelect: userInput[] = [];
     let init: boolean = true;
 
@@ -24,7 +24,7 @@
     const userColor = (item: userInput, isSelected: boolean) => {
         if (isSelected) {
             for (const u of userListSelect) {
-                if (item.text == u.text) {
+                if (item.value == u.value) {
                     item.color = u.color;
                     break;
                 }
@@ -36,7 +36,7 @@
                 let uIndex = 0;
 
                 for (let i = 0; i < userListSelect.length; i++) {
-                    if (userListSelect[i].text == item.text) {
+                    if (userListSelect[i].value == item.value) {
                         uIndex = i;
                     } else if (userListSelect[i].color == color) {
                         color = getPaletteColor();
@@ -54,21 +54,23 @@
                 item.color = color;
             }
 
-            return '<div style="border-left: 4px solid ' + item.color + '; padding: 0 0 0 4px">' + item.text + '</div>';
+            return '<div style="border-left: 4px solid ' + item.color + '; padding: 0 0 0 4px">' + item.value + '</div>';
         }
 
-        return '<div>' + item.text + '</div>';
+        return '<div>' + item.value + '</div>';
     }
     addFormatter("user-color", userColor);
 </script>
 
-<Svelecte inputId="users"
+<Svelecte inputId="data"
           renderer="user-color"
-          options={userList}
+          groupLabelField="groupHeader"
+          groupItemsField="items"
+          options={op}
           multiple={true}
           collapseSelection={true}
           alwaysCollapsed={true}
           searchable={true}
-          valueAsObject={true}
-          bind:value={userListSelect}
+          valueAsObject={false}
+          bind:readSelection={userListSelect}
           on:change={change}/>

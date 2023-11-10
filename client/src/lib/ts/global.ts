@@ -17,7 +17,7 @@ export interface userActive {
 export const userActiveStore: Writable<userActive[]> = writable();
 
 export interface userInput {
-    text: string
+    value: string
     color: string
 }
 

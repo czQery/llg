@@ -172,7 +172,7 @@
 
             let color: string = "";
             for (const u of userInputList) {
-                if (u.text.toLowerCase() == data.users[i].name.toLowerCase()) {
+                if (u.value.toLowerCase() == data.users[i].name.toLowerCase()) {
                     color = u.color;
                     break;
                 }
@@ -180,7 +180,7 @@
 
             if (color === "") {
                 for (const u of userInputList) {
-                    if (u.text.toLowerCase().includes(data.users[i].name.toLowerCase())) {
+                    if (u.value.toLowerCase().includes(data.users[i].name.toLowerCase())) {
                         color = u.color;
                         break;
                     }

@@ -1,10 +1,10 @@
 <p align="center" style="text-align: center">
   <img src="https://github.com/czQery/llg/blob/main/.github/banner.png?raw=true" alt="Logo">
   <br>
-  <a href="https://github.com/czQery/llg/actions">
+  <a href="https://github.com/czQery/llg/actions" style="text-decoration: none">
     <img src="https://img.shields.io/github/actions/workflow/status/czQery/llg/release.yml" alt="build"/>
   </a>
-  <a href="https://github.com/czQery/llg/releases/latest">
+  <a href="https://github.com/czQery/llg/releases/latest" style="text-decoration: none">
     <img src="https://img.shields.io/github/v/release/czQery/llg" alt="release"/>
   </a>
   <br>
