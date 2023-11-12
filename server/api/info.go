@@ -10,49 +10,73 @@ import (
 
 type InfoSum struct {
 	Build         string   `json:"build"`
-	Users         []string `json:"users"`
 	SelectedUsers int      `json:"selected_users"`
+	Users         []string `json:"users"`
+	Devices       []string `json:"devices"`
 }
 
 func Info(c *fiber.Ctx) error {
 	var (
-		users []string
-		split []string
-		name  string
+		files []os.DirEntry
+		err   error
+
+		tmp     []string
+		users   []string
+		devices []string
+		split   []string
+		name    string
 	)
 
-	// get files list
-	files, err := os.ReadDir(tl.Config["path"].(string))
-	if err != nil {
-		tl.Log("api", "data - readDir error: "+err.Error(), "error")
-		return c.Status(500).JSON(Response{Message: "unexpected internal error"})
-	}
-
 	// read all files in specified folder
-	for _, file := range files {
-		if file.IsDir() || !strings.HasSuffix(file.Name(), ".log") {
-			continue
+	for i := 0; i < 2; i++ {
+		if i == 0 {
+			// get users files list
+			files, err = os.ReadDir(tl.Config["users"].(string))
+		} else {
+			// get devices files list
+			files, err = os.ReadDir(tl.Config["devices"].(string))
 		}
 
-		name = ""
+		if err != nil {
+			tl.Log("api", "data - readDir error: "+err.Error(), "error")
+			return c.Status(500).JSON(Response{Message: "unexpected internal error"})
+		}
 
-		split = strings.Split(file.Name(), ".")
-		for i := 0; i < len(split)-1; i++ {
-			if name == "" {
-				name = split[i]
-			} else {
-				name = name + "." + split[i]
+		for _, file := range files {
+			if file.IsDir() || !strings.HasSuffix(file.Name(), ".log") {
+				continue
 			}
+
+			name = ""
+
+			split = strings.Split(file.Name(), ".")
+			for d := 0; d < len(split)-1; d++ {
+				if name == "" {
+					name = split[d]
+				} else {
+					name = name + "." + split[d]
+				}
+			}
+
+			name = strings.ReplaceAll(name, "-login", "")
+
+			tmp = append(tmp, name)
 		}
 
-		name = strings.ReplaceAll(name, "-login", "")
+		sort.Slice(tmp, func(i, j int) bool {
+			return strings.ToLower(tmp[i]) < strings.ToLower(tmp[j])
+		})
 
-		users = append(users, name)
+		if i == 0 {
+			// save users list
+			users = tmp
+		} else {
+			// save devices list
+			devices = tmp
+		}
+
+		tmp = nil
 	}
 
-	sort.Slice(users, func(i, j int) bool {
-		return strings.ToLower(users[i]) < strings.ToLower(users[j])
-	})
-
-	return c.Status(200).JSON(Response{Data: InfoSum{Build: tl.Build, Users: users, SelectedUsers: int(tl.Config["selected_users"].(float64))}})
+	return c.Status(200).JSON(Response{Data: InfoSum{Build: tl.Build, SelectedUsers: int(tl.Config["selected_users"].(float64)), Users: users, Devices: devices}})
 }

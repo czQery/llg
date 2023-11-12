@@ -1,5 +1,6 @@
 {
   "address": ":8893",
-  "path": "./data/",
-  "selected_users": 3
+  "selected_users": 3,
+  "users": "./data/users/",
+  "devices": "./data/devices/"
 }

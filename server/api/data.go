@@ -33,7 +33,7 @@ const timeLayoutParam = "2006-01"
 
 func Data(c *fiber.Ctx) error {
 	var (
-		dir                = tl.Config["path"].(string)
+		dir                = tl.Config["users"].(string)
 		dataDates          []int64
 		dataUsers          []DataUser
 		searchDateList     = make(map[string]int64)
