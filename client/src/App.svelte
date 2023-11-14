@@ -1,13 +1,15 @@
 <script lang="ts">
-    import {getDate, getPaletteColor, sleep} from "./lib/ts/helper";
+    import {getDate, sleep} from "./lib/ts/helper";
     import Graph from "./lib/components/Graph.svelte";
     import {type dataSum, type infoSum, loadData, loadInfo} from "./lib/ts/api";
     import SumGraph from "./lib/components/SumGraph.svelte";
     import {dataStore, infoStore, type userInput, userInputStore} from "./lib/ts/global.js";
     import UserInput from "./lib/components/UserInput.svelte";
+    import {parseSelection} from "./lib/ts/param";
 
-    let info: infoSum = {build: "", users: [], selected_users: 0};
+    let info: infoSum = {build: "", selected_users: 0, users: [], devices: []};
     let infoUserInput: userInput[] = [];
+    let infoDevicesInput: userInput[] = [];
 
     let aspElement: HTMLSpanElement;
     let dateInputElement: HTMLInputElement;
@@ -18,6 +20,10 @@
             info = value;
             if (info.users) {
                 infoUserInput = info.users.map((u: string) => ({value: u, color: ""}));
+            }
+
+            if (info.devices) {
+                infoDevicesInput = info.devices.map((u: string) => ({value: u, color: ""}));
             }
         }
     });
@@ -41,53 +47,7 @@
             dateInputElement.value = getDate(new Date());
         }
 
-        let urlUsers = urlParams.get("users");
-        let urlUsersInput: userInput[] = [];
-        if (urlUsers) {
-            let urlUsersList: string[] = urlUsers.split(",").filter((u: string) => {
-
-                if (info.users) {
-                    for (const uInfo of info.users) {
-                        if (uInfo == u) {
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
-            })
-
-            urlUsersInput = urlUsersList.map((u: string) => {
-                return {value: u, color: ""};
-            });
-        } else {
-            if (info.users) {
-                urlUsersInput = info.users.slice(0, info.selected_users).map((u: string) => {
-                    return {value: u, color: ""}
-                });
-            }
-        }
-
-        for (const u of urlUsersInput) {
-            let color = getPaletteColor();
-            let ttl = 0;
-
-            for (let i = 0; i < urlUsersInput.length; i++) {
-                if (urlUsersInput[i].color == color && urlUsersInput[i].value != u.value) {
-                    color = getPaletteColor();
-
-                    if (ttl > urlUsersInput.length * urlUsersInput.length) {
-                        continue;
-                    }
-
-                    ttl = ttl + 1;
-                    i = -1;
-                }
-            }
-            u.color = color;
-        }
-
-        userInputStore.set(urlUsersInput);
+        userInputStore.set(parseSelection("users", urlParams, info));
 
         await render();
 
@@ -169,7 +129,7 @@
                     },
                     {
                         groupHeader: "Devices",
-                        items: infoUserInput
+                        items: infoDevicesInput
                     }
                 ]}/>
             </div>
