@@ -1,11 +1,11 @@
 <script lang="ts">
-    import {type userActive, userActiveStore} from "../ts/global";
+    import {type itemActive, itemActiveStore} from "../ts/global";
     import {formatDuration} from "../ts/helper";
 
-    let sums: userActive[] = [];
+    let sums: itemActive[] = [];
     let sumsSum: number = 0;
 
-    userActiveStore.subscribe((value: userActive[]) => {
+    itemActiveStore.subscribe((value: itemActive[]) => {
         if (value) {
             sums = value;
             sumsSum = 0;
@@ -19,14 +19,14 @@
 
 <div id="sm">
     {#if sumsSum <= 0}
-        <div style="color: #000; width: 100%">There are no data for selected date or users!</div>
+        <div style="color: #000; width: 100%">There are no data for selected date or items!</div>
     {:else}
         {#each sums as s}
             {#if s.sum !== -1}
                 <div style={"background-color: "+s.color+"; width: "+(s.sum / sumsSum) * 100+"%"}>{((window.innerWidth - (2 * 30)) * (s.sum / sumsSum) < 40) ? "" : formatDuration(s.sum)}</div>
             {/if}
         {:else}
-            <div style="color: #000; width: 100%">There are no data for selected date or users!</div>
+            <div style="color: #000; width: 100%">There are no data for selected date or items!</div>
         {/each}
     {/if}
 </div>

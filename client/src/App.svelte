@@ -3,34 +3,37 @@
     import Graph from "./lib/components/Graph.svelte";
     import {type dataSum, type infoSum, loadData, loadInfo} from "./lib/ts/api";
     import SumGraph from "./lib/components/SumGraph.svelte";
-    import {dataStore, infoStore, type userInput, userInputStore} from "./lib/ts/global.js";
-    import UserInput from "./lib/components/UserInput.svelte";
+    import {dataStore, infoStore, type itemInput, itemInputStore} from "./lib/ts/global.js";
+    import ItemInput from "./lib/components/ItemInput.svelte";
     import {parseSelection} from "./lib/ts/param";
 
     let info: infoSum = {build: "", selected_users: 0, users: [], devices: []};
-    let infoUserInput: userInput[] = [];
-    let infoDevicesInput: userInput[] = [];
+    let infoItemInput: itemInput[] = [];
 
     let aspElement: HTMLSpanElement;
     let dateInputElement: HTMLInputElement;
-    let userInputList: userInput[] = [];
+    let itemInputList: itemInput[] = [];
 
     infoStore.subscribe((value: infoSum) => {
         if (value) {
             info = value;
+            let list: itemInput[] = [];
+
             if (info.users) {
-                infoUserInput = info.users.map((u: string) => ({value: u, color: ""}));
+                list.push(...info.users.map((u: string) => (<itemInput>{type: "user", value: u, color: ""})));
             }
 
             if (info.devices) {
-                infoDevicesInput = info.devices.map((u: string) => ({value: u, color: ""}));
+                list.push(...info.devices.map((u: string) => (<itemInput>{type: "device", value: u, color: ""})));
             }
+
+            infoItemInput = list;
         }
     });
 
-    userInputStore.subscribe((value: userInput[]) => {
+    itemInputStore.subscribe((value: itemInput[]) => {
         if (value) {
-            userInputList = value;
+            itemInputList = value;
             render();
         }
     });
@@ -47,7 +50,12 @@
             dateInputElement.value = getDate(new Date());
         }
 
-        userInputStore.set(parseSelection("users", urlParams, info));
+        let list: itemInput[] = [];
+
+        list.push(...parseSelection("user", urlParams, info))
+        list.push(...parseSelection("device", urlParams, info))
+
+        itemInputStore.set(list);
 
         await render();
 
@@ -69,19 +77,26 @@
 
         const url = new URL(window.location.toString());
         url.searchParams.set("date", getDate(date));
-        url.searchParams.set("users", (userInputList.map((u: userInput) => {
-            return u.value
+        url.searchParams.set("users", (itemInputList.map((u: itemInput) => {
+            if (u.type === "user") return u.value;
         })).toString());
+
+        url.searchParams.set("devices", (itemInputList.map((u: itemInput) => {
+            if (u.type === "device") return u.value;
+        })).toString());
+
         window.history.replaceState(null, "", url.toString());
 
-        if (userInputList.length === 0) {
+        if (itemInputList.length === 0) {
             dataStore.set({} as dataSum);
             return;
         }
 
-        let param = "?date=" + encodeURIComponent(dateInputElement.value) + "&users=" + encodeURIComponent((userInputList.map((u: userInput) => {
-            return u.value
-        })).toString())
+        let param = "?date=" + encodeURIComponent(dateInputElement.value)
+            + "&users="
+            + encodeURIComponent((itemInputList.map((u: itemInput) => {if (u.type === "device") return u.value})).toString())
+            + "&devices="
+            + encodeURIComponent((itemInputList.map((u: itemInput) => {if (u.type === "device") return u.value})).toString());
 
         if (renderLast === param) {
             return;
@@ -115,21 +130,21 @@
         <a href="/">LLG</a>
         <form>
             <div>
-                <label for="month">Month:</label>
-                <input type="month" id="month" name="month" min="2000-00"
+                <label for="date">Month:</label>
+                <input id="date" type="month" name="month" min="2000-00"
                        on:change={render}
                        bind:this={dateInputElement}/>
             </div>
             <div>
-                <label for="data">Data:</label>
-                <UserInput op={[
+                <label for="item" style="letter-spacing: 1.5px">Items:</label>
+                <ItemInput op={[
                     {
                         groupHeader: "Users",
-                        items: infoUserInput
+                        items: infoItemInput.filter((i) => i.type === "user")
                     },
                     {
                         groupHeader: "Devices",
-                        items: infoDevicesInput
+                        items: infoItemInput.filter((i) => i.type === "device")
                     }
                 ]}/>
             </div>
@@ -143,7 +158,7 @@
     </header>
     <div id="wrapper">
         <!--<Details/>-->
-        <Graph aspElement={aspElement} userInputList={userInputList}/>
+        <Graph aspElement={aspElement} itemInputList={itemInputList}/>
     </div>
     <SumGraph/>
     <footer id="footer">

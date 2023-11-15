@@ -2,9 +2,9 @@
     import {BarController, BarElement, Chart, LinearScale, PointElement, Tooltip} from "chart.js";
     import {formatDate, formatDuration, formatTime, sleep} from "../ts/helper";
     import {type dataSum, type dataUser, type dataUserSession} from "../ts/api";
-    import {type userActive, userActiveStore, dataStore, type userInput} from "../ts/global";
+    import {type itemActive, itemActiveStore, dataStore, type itemInput} from "../ts/global";
 
-    export let userInputList: userInput[] = [];
+    export let itemInputList: itemInput[] = [];
     export let aspElement: HTMLSpanElement;
     let chElement: HTMLCanvasElement;
     let data: dataSum = {dates: [], users: []};
@@ -141,7 +141,7 @@
             chart.options.scales.x.max = null;
 
             chart.update();
-            userActiveStore.set([]);
+            itemActiveStore.set([]);
         }
 
         if (!value || !value.dates || !value.users) {
@@ -163,7 +163,7 @@
         //@ts-ignore
         chart.options.scales.x.max = Math.trunc(rangeMax.valueOf() / 60 / 60 / 24 / 1000);
 
-        let aUsers: userActive[] = [];
+        let aUsers: itemActive[] = [];
 
         for (let i = 0; i < data.users.length; i++) {
             if (!data.users[i].sessions) {
@@ -171,7 +171,7 @@
             }
 
             let color: string = "";
-            for (const u of userInputList) {
+            for (const u of itemInputList) {
                 if (u.value.toLowerCase() == data.users[i].name.toLowerCase()) {
                     color = u.color;
                     break;
@@ -179,7 +179,7 @@
             }
 
             if (color === "") {
-                for (const u of userInputList) {
+                for (const u of itemInputList) {
                     if (u.value.toLowerCase().includes(data.users[i].name.toLowerCase())) {
                         color = u.color;
                         break;
@@ -208,7 +208,7 @@
         }
 
         chart.update();
-        userActiveStore.set(aUsers);
+        itemActiveStore.set(aUsers);
     });
 </script>
 

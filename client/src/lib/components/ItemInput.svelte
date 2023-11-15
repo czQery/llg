@@ -2,28 +2,28 @@
     //@ts-ignore
     import Svelecte, {addFormatter} from "svelecte";
     import {getPaletteColor, sleep} from "../ts/helper";
-    import type {userInput} from "../ts/global";
-    import {userInputStore} from "../ts/global";
+    import type {itemInput} from "../ts/global";
+    import {itemInputStore} from "../ts/global";
 
     export let op: object = [];
-    let userListSelect: userInput[] = [];
+    let itemListSelect: itemInput[] = [];
     let init: boolean = true;
 
-    userInputStore.subscribe((value: userInput[]) => {
+    itemInputStore.subscribe((value: itemInput[]) => {
         if (value && init) {
             init = false;
-            userListSelect = value;
+            itemListSelect = value;
         }
     });
 
     const change = () => {
         sleep(100);
-        userInputStore.set(userListSelect);
+        itemInputStore.set(itemListSelect);
     }
 
-    const userColor = (item: userInput, isSelected: boolean) => {
+    const itemColor = (item: itemInput, isSelected: boolean) => {
         if (isSelected) {
-            for (const u of userListSelect) {
+            for (const u of itemListSelect) {
                 if (item.value == u.value) {
                     item.color = u.color;
                     break;
@@ -35,13 +35,13 @@
                 let ttl = 0;
                 let uIndex = 0;
 
-                for (let i = 0; i < userListSelect.length; i++) {
-                    if (userListSelect[i].value == item.value) {
+                for (let i = 0; i < itemListSelect.length; i++) {
+                    if (itemListSelect[i].value == item.value) {
                         uIndex = i;
-                    } else if (userListSelect[i].color == color) {
+                    } else if (itemListSelect[i].color == color) {
                         color = getPaletteColor();
 
-                        if (ttl > userListSelect.length * userListSelect.length) {
+                        if (ttl > itemListSelect.length * itemListSelect.length) {
                             continue;
                         }
 
@@ -50,7 +50,7 @@
                     }
                 }
 
-                userListSelect[uIndex].color = color;
+                itemListSelect[uIndex].color = color;
                 item.color = color;
             }
 
@@ -59,11 +59,11 @@
 
         return '<div>' + item.value + '</div>';
     }
-    addFormatter("user-color", userColor);
+    addFormatter("item-color", itemColor);
 </script>
 
-<Svelecte inputId="data"
-          renderer="user-color"
+<Svelecte inputId="item"
+          renderer="item-color"
           groupLabelField="groupHeader"
           groupItemsField="items"
           options={op}
@@ -72,5 +72,5 @@
           alwaysCollapsed={true}
           searchable={true}
           valueAsObject={false}
-          bind:readSelection={userListSelect}
+          bind:readSelection={itemListSelect}
           on:change={change}/>
