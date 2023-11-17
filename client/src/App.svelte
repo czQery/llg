@@ -57,8 +57,6 @@
 
         itemInputStore.set(list);
 
-        await render();
-
         setTimeout(() => {
             document.getElementById("loading")!.style.display = "none";
             document.getElementById("app")!.style.display = "block";
@@ -94,7 +92,7 @@
 
         let param = "?date=" + encodeURIComponent(dateInputElement.value)
             + "&users="
-            + encodeURIComponent((itemInputList.map((u: itemInput) => {if (u.type === "device") return u.value})).toString())
+            + encodeURIComponent((itemInputList.map((u: itemInput) => {if (u.type === "user") return u.value})).toString())
             + "&devices="
             + encodeURIComponent((itemInputList.map((u: itemInput) => {if (u.type === "device") return u.value})).toString());
 

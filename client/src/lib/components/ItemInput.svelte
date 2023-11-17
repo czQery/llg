@@ -71,6 +71,6 @@
           collapseSelection={true}
           alwaysCollapsed={true}
           searchable={true}
-          valueAsObject={false}
-          bind:readSelection={itemListSelect}
+          valueAsObject={true}
+          bind:value={itemListSelect}
           on:change={change}/>
