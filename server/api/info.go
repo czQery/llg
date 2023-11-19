@@ -16,67 +16,52 @@ type InfoSum struct {
 }
 
 func Info(c *fiber.Ctx) error {
-	var (
-		files []os.DirEntry
-		err   error
 
-		tmp     []string
-		users   []string
-		devices []string
-		split   []string
-		name    string
-	)
+	users, usersErr := infoRead(tl.Config["users"].(string))
+	devices, devicesErr := infoRead(tl.Config["devices"].(string))
 
-	// read all files in specified folder
-	for i := 0; i < 2; i++ {
-		if i == 0 {
-			// get users files list
-			files, err = os.ReadDir(tl.Config["users"].(string))
-		} else {
-			// get devices files list
-			files, err = os.ReadDir(tl.Config["devices"].(string))
-		}
-
-		if err != nil {
-			tl.Log("api", "data - readDir error: "+err.Error(), "error")
-			return c.Status(500).JSON(Response{Message: "unexpected internal error"})
-		}
-
-		for _, file := range files {
-			if file.IsDir() || !strings.HasSuffix(file.Name(), ".log") {
-				continue
-			}
-
-			name = ""
-
-			split = strings.Split(file.Name(), ".")
-			for d := 0; d < len(split)-1; d++ {
-				if name == "" {
-					name = split[d]
-				} else {
-					name = name + "." + split[d]
-				}
-			}
-
-			name = strings.ReplaceAll(name, "-login", "")
-
-			tmp = append(tmp, name)
-		}
-
-		sort.Slice(tmp, func(i, j int) bool {
-			return strings.ToLower(tmp[i]) < strings.ToLower(tmp[j])
-		})
-
-		if i == 0 {
-			// save users list
-			users = tmp
-		} else {
-			// save devices list
-			devices = tmp
-		}
-
-		tmp = nil
+	if usersErr != nil || devicesErr != nil {
+		return c.Status(500).JSON(Response{Message: "unexpected internal error"})
 	}
 
 	return c.Status(200).JSON(Response{Data: InfoSum{Build: tl.Build, SelectedUsers: int(tl.Config["selected_users"].(float64)), Users: users, Devices: devices}})
+}
+
+func infoRead(folder string) ([]string, error) {
+	var list []string
+
+	// get folder files list
+	files, err := os.ReadDir(folder)
+
+	if err != nil {
+		tl.Log("api", "info - infoRead: readDir error: "+err.Error(), "error")
+		return list, err
+	}
+
+	for _, file := range files {
+		if file.IsDir() || !strings.HasSuffix(file.Name(), ".log") {
+			continue
+		}
+
+		name := ""
+
+		split := strings.Split(file.Name(), ".")
+		for d := 0; d < len(split)-1; d++ {
+			if name == "" {
+				name = split[d]
+			} else {
+				name = name + "." + split[d]
+			}
+		}
+
+		name = strings.ReplaceAll(name, "-login", "")
+
+		list = append(list, name)
+	}
+
+	sort.Slice(list, func(i, j int) bool {
+		return strings.ToLower(list[i]) < strings.ToLower(list[j])
+	})
+
+	return list, nil
 }
