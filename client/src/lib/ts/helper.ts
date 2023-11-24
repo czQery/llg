@@ -1,3 +1,5 @@
+import {type itemInput} from "./global";
+
 export const formatTime = (value: number): string => {
     let h = Math.trunc(value / 60);
     let m = value % 60;
@@ -18,12 +20,12 @@ export const formatTime = (value: number): string => {
 
 export const formatDate = (value: number): string => {
     let date = new Date(value * 60 * 60 * 24 * 1000);
-    return date.getDate().toString()+"."+(date.getMonth()+1).toString()+".";
+    return date.getDate().toString() + "." + (date.getMonth() + 1).toString() + ".";
 }
 
 export const formatDateFull = (value: number): string => {
     let date = new Date(value * 60 * 60 * 24 * 1000);
-    return date.getDate().toString()+"."+(date.getMonth()+1).toString()+"."+date.getFullYear().toString();
+    return date.getDate().toString() + "." + (date.getMonth() + 1).toString() + "." + date.getFullYear().toString();
 }
 
 export const formatDuration = (minutes: number): string => {
@@ -44,7 +46,7 @@ export const getRandomColor = (): string => {
     let c = Math.floor(Math.random() * 16777215).toString(16);
 
     if (c.length != 6) {
-        c = c+"0";
+        c = c + "0";
     }
 
     return "#" + c;
@@ -52,7 +54,7 @@ export const getRandomColor = (): string => {
 
 export const getPaletteColor = (): string => {
     const colors: string[] = ["f28682", "0ceaf9", "fae100", "a845b3", "a09262", "d5334b", "60dd83", "f5980c", "fa147f"]
-    return "#"+colors[Math.floor(Math.random() * (colors.length - 1))]
+    return "#" + colors[Math.floor(Math.random() * (colors.length - 1))]
 }
 
 export const isJSON = (response: Response): boolean => {
@@ -61,4 +63,17 @@ export const isJSON = (response: Response): boolean => {
 
 export const isOK = (data: any): boolean => {
     return !(data == null);
+}
+
+export const inputToString = (slice: itemInput[], type: "user" | "device"): string => {
+    let mp: (string | undefined)[];
+
+    mp = slice.map((u: itemInput): string | undefined => {
+        return (u.type === type) ? u.value : undefined
+    });
+    mp = mp.filter((u: string | undefined) => {
+        return u
+    })
+
+    return mp.toString()
 }

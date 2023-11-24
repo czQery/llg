@@ -6,6 +6,7 @@
     import {dataStore, infoStore, type itemInput, itemInputStore} from "./lib/ts/global.js";
     import ItemInput from "./lib/components/ItemInput.svelte";
     import {parseSelection} from "./lib/ts/param";
+    import {inputToString} from "./lib/ts/helper.js";
 
     let info: infoSum = {build: "", selected_users: 0, users: [], devices: []};
     let infoItemInput: itemInput[] = [];
@@ -75,13 +76,9 @@
 
         const url = new URL(window.location.toString());
         url.searchParams.set("date", getDate(date));
-        url.searchParams.set("users", (itemInputList.map((u: itemInput) => {
-            if (u.type === "user") return u.value;
-        })).toString());
 
-        url.searchParams.set("devices", (itemInputList.map((u: itemInput) => {
-            if (u.type === "device") return u.value;
-        })).toString());
+        url.searchParams.set("users", inputToString(itemInputList, "user"));
+        url.searchParams.set("devices", inputToString(itemInputList, "device"));
 
         window.history.replaceState(null, "", url.toString());
 
@@ -92,9 +89,9 @@
 
         let param = "?date=" + encodeURIComponent(dateInputElement.value)
             + "&users="
-            + encodeURIComponent((itemInputList.map((u: itemInput) => {if (u.type === "user") return u.value})).toString())
+            + encodeURIComponent(inputToString(itemInputList, "user"))
             + "&devices="
-            + encodeURIComponent((itemInputList.map((u: itemInput) => {if (u.type === "device") return u.value})).toString());
+            + encodeURIComponent(inputToString(itemInputList, "device"));
 
         if (renderLast === param) {
             return;

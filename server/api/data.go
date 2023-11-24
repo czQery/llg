@@ -55,7 +55,7 @@ func Data(c *fiber.Ctx) error {
 		dateParam = time.Now()
 	}
 
-	if c.Query("users") == "" || c.Query("devices") == "" {
+	if c.Query("users") == "" && c.Query("devices") == "" {
 		return c.Status(400).JSON(Response{Message: "no users or devices selected"})
 	}
 
