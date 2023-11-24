@@ -14,18 +14,19 @@ import (
 
 type DataSum struct {
 	Dates []int64    `json:"dates"`
-	Users []DataUser `json:"users"`
+	Items []DataItem `json:"items"`
 }
 
-type DataUser struct {
+type DataItem struct {
 	Name     string            `json:"name"`
-	Sessions []DataUserSession `json:"sessions"`
+	Type     string            `json:"type"`
+	Sessions []DataItemSession `json:"sessions"`
 }
 
-type DataUserSession struct {
+type DataItemSession struct {
 	Date   int64  `json:"date,omitempty"`
 	Time   []int  `json:"time,omitempty"`
-	Device string `json:"device,omitempty"`
+	Detail string `json:"detail,omitempty"`
 }
 
 const timeLayout = "02.01.2006-15:04"
@@ -33,14 +34,13 @@ const timeLayoutParam = "2006-01"
 
 func Data(c *fiber.Ctx) error {
 	var (
-		dir                = tl.Config["users"].(string)
 		dataDates          []int64
-		dataUsers          []DataUser
 		searchDateList     = make(map[string]int64)
 		searchDateListKeys = make([]string, 0, len(searchDateList))
 
-		dateParam  time.Time
-		usersParam []string
+		dateParam    time.Time
+		usersParam   []string
+		devicesParam []string
 	)
 
 	if c.Query("date") != "" {
@@ -55,23 +55,69 @@ func Data(c *fiber.Ctx) error {
 		dateParam = time.Now()
 	}
 
+	if c.Query("users") == "" || c.Query("devices") == "" {
+		return c.Status(400).JSON(Response{Message: "no users or devices selected"})
+	}
+
 	if c.Query("users") != "" {
 		usersDecoded, _ := url.QueryUnescape(c.Query("users"))
 		usersParam = strings.Split(usersDecoded, ",")
-	} else {
-		return c.Status(400).JSON(Response{Message: "no users selected"})
+		tl.CleanSlice(&usersParam)
+	}
+
+	if c.Query("devices") != "" {
+		devicesDecoded, _ := url.QueryUnescape(c.Query("devices"))
+		devicesParam = strings.Split(devicesDecoded, ",")
+		tl.CleanSlice(&devicesParam)
 	}
 
 	// debug
 	dbgStart := time.Now()
 	dbgLines := 0
 	tl.Log("api", "data - reading init!", "debug")
+	tl.Log("api", "data - users: "+strings.Join(usersParam, ","), "debug")
+	tl.Log("api", "data - devices: "+strings.Join(devicesParam, ","), "debug")
+
+	dataUsers, usersErr := dataRead("user", tl.Config["users"].(string), usersParam, dateParam, &searchDateList, &dbgLines)
+	dataDevices, devicesErr := dataRead("device", tl.Config["devices"].(string), devicesParam, dateParam, &searchDateList, &dbgLines)
+
+	if usersErr != nil || devicesErr != nil {
+		return c.Status(500).JSON(Response{Message: "unexpected internal error"})
+	}
+
+	// format dates
+	for key := range searchDateList {
+		searchDateListKeys = append(searchDateListKeys, key)
+	}
+	sort.SliceStable(searchDateListKeys, func(i, j int) bool {
+		return searchDateList[searchDateListKeys[i]] < searchDateList[searchDateListKeys[j]]
+	})
+
+	for _, k := range searchDateListKeys {
+		dataDates = append(dataDates, searchDateList[k])
+	}
+
+	tl.Log("api", "data - reading done: "+time.Since(dbgStart).String()+" lines: "+strconv.Itoa(dbgLines), "debug")
+
+	if len(dataDates) == 0 {
+		return c.Status(404).JSON(Response{Message: "no data"})
+	}
+
+	return c.Status(200).JSON(Response{Data: DataSum{Dates: dataDates, Items: append(dataUsers, dataDevices...)}})
+}
+
+func dataRead(tp string, folder string, items []string, date time.Time, dateList *map[string]int64, dbgLines *int) ([]DataItem, error) {
+	var list []DataItem
+
+	if len(items) == 0 {
+		return list, nil
+	}
 
 	// get files list
-	files, err := os.ReadDir(dir)
+	files, err := os.ReadDir(folder)
 	if err != nil {
 		tl.Log("api", "data - readDir error: "+err.Error(), "error")
-		return c.Status(500).JSON(Response{Message: "unexpected internal error"})
+		return list, err
 	}
 
 	// read all files in specified folder
@@ -81,7 +127,7 @@ func Data(c *fiber.Ctx) error {
 		}
 
 		var hit bool
-		for _, u := range usersParam {
+		for _, u := range items {
 			if strings.Contains(file.Name(), u) {
 				hit = true
 				break
@@ -92,7 +138,7 @@ func Data(c *fiber.Ctx) error {
 			continue
 		}
 
-		fileData, err := os.ReadFile(dir + file.Name())
+		fileData, err := os.ReadFile(folder + file.Name())
 		if err != nil {
 			tl.Log("api", "data - readFile error: "+err.Error(), "error")
 		}
@@ -102,7 +148,7 @@ func Data(c *fiber.Ctx) error {
 			searchName        string
 			searchLogin       []string
 			searchLogoff      []string
-			searchSessionList []DataUserSession
+			searchSessionList []DataItemSession
 		)
 
 		fileLines := strings.Split(string(fileData), "\n")
@@ -112,7 +158,7 @@ func Data(c *fiber.Ctx) error {
 
 			fileLine = strings.ReplaceAll(fileLine, "\r", "")
 			fileP := strings.Split(fileLine, ";")
-			dbgLines = dbgLines + 1
+			*dbgLines = *dbgLines + 1
 
 			if len(fileP) < 5 {
 				// skip new line on end in order to have currently ongoing session
@@ -144,9 +190,9 @@ func Data(c *fiber.Ctx) error {
 						tl.Log("api", "data - session: "+searchLogin[1]+" invalid date: "+searchLogin[3]+" or time: "+searchLogin[4], "warn")
 					} else {
 						// selected month check
-						if dateStart.Year() == dateParam.Year() && dateStart.Month() == dateParam.Month() {
-							searchSessionList = append(searchSessionList, DataUserSession{Date: dateStart.Unix() / 60 / 60 / 24, Device: searchLogin[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
-							searchDateList[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
+						if dateStart.Year() == date.Year() && dateStart.Month() == date.Month() {
+							searchSessionList = append(searchSessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: searchLogin[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+							(*dateList)[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
 						}
 					}
 
@@ -201,7 +247,7 @@ func Data(c *fiber.Ctx) error {
 				}
 
 				// selected month check
-				if dateStart.Year() != dateParam.Year() || dateStart.Month() != dateParam.Month() || dateEnd.Year() != dateParam.Year() || dateEnd.Month() != dateParam.Month() {
+				if dateStart.Year() != date.Year() || dateStart.Month() != date.Month() || dateEnd.Year() != date.Year() || dateEnd.Month() != date.Month() {
 					search = false
 					continue
 				}
@@ -210,21 +256,21 @@ func Data(c *fiber.Ctx) error {
 
 				// over midnight check
 				if dateEnd.Unix() > dateStart.Unix() {
-					searchDateList[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
-					searchDateList[fileP[3]] = dateEnd.Unix() / 60 / 60 / 24
+					(*dateList)[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
+					(*dateList)[fileP[3]] = dateEnd.Unix() / 60 / 60 / 24
 
-					searchSessionList = append(searchSessionList, DataUserSession{Date: dateStart.Unix() / 60 / 60 / 24, Device: searchLogin[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
-					searchSessionList = append(searchSessionList, DataUserSession{Date: dateEnd.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{0, int(timeEnd.Unix() / 60)}})              // midnight to end
+					searchSessionList = append(searchSessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: searchLogin[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+					searchSessionList = append(searchSessionList, DataItemSession{Date: dateEnd.Unix() / 60 / 60 / 24, Detail: fileP[2], Time: []int{0, int(timeEnd.Unix() / 60)}})              // midnight to end
 
-					searchDateList[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
-					searchDateList[fileP[3]] = dateEnd.Unix() / 60 / 60 / 24
+					(*dateList)[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
+					(*dateList)[fileP[3]] = dateEnd.Unix() / 60 / 60 / 24
 
 					search = false
 					continue
 				}
 
-				searchSessionList = append(searchSessionList, DataUserSession{Date: dateStart.Unix() / 60 / 60 / 24, Device: fileP[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
-				searchDateList[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
+				searchSessionList = append(searchSessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: fileP[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
+				(*dateList)[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
 				search = false
 			}
 		}
@@ -241,35 +287,18 @@ func Data(c *fiber.Ctx) error {
 				tl.Log("api", "data - session: "+searchLogin[1]+" invalid date: "+searchLogin[3]+" or time: "+searchLogin[4], "warn")
 			} else {
 				// selected month check
-				if dateStart.Year() == dateParam.Year() && dateStart.Month() == dateParam.Month() {
-					searchSessionList = append(searchSessionList, DataUserSession{Date: dateStart.Unix() / 60 / 60 / 24, Device: searchLogin[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
-					searchDateList[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
+				if dateStart.Year() == date.Year() && dateStart.Month() == date.Month() {
+					searchSessionList = append(searchSessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: searchLogin[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
+					(*dateList)[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
 				}
 			}
 		}
 
 		if len(searchSessionList) > 0 {
-			dataUsers = append(dataUsers, DataUser{Name: searchName, Sessions: searchSessionList})
+
+			list = append(list, DataItem{Name: searchName, Type: tp, Sessions: searchSessionList})
 		}
 	}
 
-	// format dates
-	for key := range searchDateList {
-		searchDateListKeys = append(searchDateListKeys, key)
-	}
-	sort.SliceStable(searchDateListKeys, func(i, j int) bool {
-		return searchDateList[searchDateListKeys[i]] < searchDateList[searchDateListKeys[j]]
-	})
-
-	for _, k := range searchDateListKeys {
-		dataDates = append(dataDates, searchDateList[k])
-	}
-
-	tl.Log("api", "data - reading done: "+time.Since(dbgStart).String()+" lines: "+strconv.Itoa(dbgLines), "debug")
-
-	if len(dataDates) == 0 {
-		return c.Status(404).JSON(Response{Message: "no data"})
-	}
-
-	return c.Status(200).JSON(Response{Data: DataSum{Dates: dataDates, Users: dataUsers}})
+	return list, nil
 }

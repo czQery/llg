@@ -30,18 +30,19 @@ export const loadInfo = async (): Promise<boolean> => {
 
 export interface dataSum {
     dates: number[]
-    users: dataUser[]
+    items: dataItem[]
 }
 
-export interface dataUser {
+export interface dataItem {
     name: string
-    sessions: dataUserSession[]
+    type: "user" | "device"
+    sessions: dataItemSession[]
 }
 
-export interface dataUserSession {
+export interface dataItemSession {
     date: number | undefined
-    device: string | undefined
     time: number[] | undefined
+    detail: string | undefined
 }
 
 export const loadData = async (param: string) => {

@@ -45,3 +45,15 @@ func LoadDist() {
 	Dist = true
 	Log("dist", "successfully loaded!", "info")
 }
+
+func CleanSlice(slice *[]string) {
+	var tmp []string
+
+	for _, d := range *slice {
+		if d != "" {
+			tmp = append(tmp, d)
+		}
+	}
+
+	*slice = tmp
+}

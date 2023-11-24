@@ -17,7 +17,7 @@ export interface itemActive {
 export const itemActiveStore: Writable<itemActive[]> = writable();
 
 export interface itemInput {
-    type: "user" | "device";
+    type: "user" | "device"
     value: string
     color: string
 }

@@ -1,13 +1,13 @@
 <script lang="ts">
     import {BarController, BarElement, Chart, LinearScale, PointElement, Tooltip} from "chart.js";
     import {formatDate, formatDuration, formatTime, sleep} from "../ts/helper";
-    import {type dataSum, type dataUser, type dataUserSession} from "../ts/api";
-    import {type itemActive, itemActiveStore, dataStore, type itemInput} from "../ts/global";
+    import {type dataItem, type dataItemSession, type dataSum} from "../ts/api";
+    import {dataStore, type itemActive, itemActiveStore, type itemInput} from "../ts/global";
 
     export let itemInputList: itemInput[] = [];
     export let aspElement: HTMLSpanElement;
     let chElement: HTMLCanvasElement;
-    let data: dataSum = {dates: [], users: []};
+    let data: dataSum = {dates: [], items: []};
 
     Chart.register(LinearScale, BarController, BarElement, PointElement, Tooltip);
     let chart: Chart<"bar", (number[] | undefined)[], number> | undefined;
@@ -66,18 +66,29 @@
                                     }
                                 }
 
-                                let raw = data.users.find((u: dataUser) => u.name == items[0]["dataset"]["label"])?.sessions[items[0]["dataIndex"]]
-                                let device: string = "";
-                                if (raw && raw.device) {
-                                    aspElement.innerText = "\\\\" + raw.device.split(" ")[0] + "\\c$";
-                                    device = "\nPC: " + raw.device.split(" ")[0] + "\nIP: " + raw.device.split(" ")[1].replace("(", "").replace(")", "") + "\n";
+                                let raw = data.items.find((u: dataItem) => u.name == items[0]["dataset"]["label"]);
+                                let rawSession = raw?.sessions[items[0]["dataIndex"]];
+                                let detail: string = "";
+
+                                if (!rawSession || !rawSession.detail || !raw!.type) {
+                                    return "Name: " + items[0]["dataset"]["label"] + detail + "\nSession: " + formatDuration(session) + "\nDay: " + formatDuration(day);
                                 }
 
-                                return "User: " + items[0]["dataset"]["label"] + device + "\nSession: " + formatDuration(session) + "\nDay: " + formatDuration(day);
+                                if (raw?.type === "user") {
+                                    aspElement.innerText = "\\\\" + rawSession.detail.split(" ")[0] + "\\c$";
+                                    detail = "\nPC: " + rawSession.detail.split(" ")[0] + "\nIP: " + rawSession.detail.split(" ")[1].replace("(", "").replace(")", "") + "\nType: user\n";
+                                    return "User: " + items[0]["dataset"]["label"] + detail + "\nSession: " + formatDuration(session) + "\nDay: " + formatDuration(day);
+                                }
+
+                                if (raw?.type === "device") {
+                                    aspElement.innerText = "\\\\" + items[0]["dataset"]["label"]!.split(" ")[0] + "\\c$";
+                                    detail = "\nPC: " + items[0]["dataset"]["label"]!.split(" ")[0] + "\nIP: " + items[0]["dataset"]["label"]!.split(" ")[1].replace("(", "").replace(")", "") + "\nType: device\n";
+                                    return "User: " + rawSession.detail + detail + "\nSession: " + formatDuration(session) + "\nDay: " + formatDuration(day);
+                                }
                             },
                             label: (item) => {
                                 //@ts-ignore
-                                return [formatTime(item["raw"]["y"][0]) + " - " + formatTime(item["raw"]["y"][1]) + " (" + formatDate(item["raw"]["x"])+")"];
+                                return [formatTime(item["raw"]["y"][0]) + " - " + formatTime(item["raw"]["y"][1]) + " (" + formatDate(item["raw"]["x"]) + ")"];
                             },
                         }
                     }
@@ -144,7 +155,7 @@
             itemActiveStore.set([]);
         }
 
-        if (!value || !value.dates || !value.users) {
+        if (!value || !value.dates || !value.items) {
             return;
         }
 
@@ -165,14 +176,15 @@
 
         let aUsers: itemActive[] = [];
 
-        for (let i = 0; i < data.users.length; i++) {
-            if (!data.users[i].sessions) {
+        for (let i = 0; i < data.items.length; i++) {
+
+            if (!data.items[i].sessions) {
                 continue;
             }
 
             let color: string = "";
             for (const u of itemInputList) {
-                if (u.value.toLowerCase() == data.users[i].name.toLowerCase()) {
+                if (u.value.toLowerCase() == data.items[i].name.toLowerCase().split(" ")[0]) {
                     color = u.color;
                     break;
                 }
@@ -180,7 +192,7 @@
 
             if (color === "") {
                 for (const u of itemInputList) {
-                    if (u.value.toLowerCase().includes(data.users[i].name.toLowerCase())) {
+                    if (u.value.toLowerCase().includes(data.items[i].name.toLowerCase().split(" ")[0])) {
                         color = u.color;
                         break;
                     }
@@ -188,23 +200,23 @@
             }
 
             chart.data.datasets.push({
-                label: data.users[i].name,
+                label: data.items[i].name,
                 backgroundColor: color,
                 //@ts-ignore
-                data: data.users[i].sessions.map((row: dataUserSession) => {
+                data: data.items[i].sessions.map((row: dataItemSession) => {
                     return {x: row.date, y: row.time}
                 }),
                 hidden: false
             });
 
             let uSum = 0;
-            for (const s of data.users[i].sessions) {
+            for (const s of data.items[i].sessions) {
                 if (!s.time) continue;
 
                 uSum = uSum + (s.time[1] - s.time[0]);
             }
 
-            aUsers.push({name: data.users[i].name, color: color, sum: uSum});
+            aUsers.push({name: data.items[i].name, color: color, sum: uSum});
         }
 
         chart.update();
