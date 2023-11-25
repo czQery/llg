@@ -8,7 +8,7 @@
     import {parseSelection} from "./lib/ts/param";
     import {inputToString} from "./lib/ts/helper.js";
 
-    let info: infoSum = {build: "", selected_users: 0, users: [], devices: []};
+    let info: infoSum = {build: "", selected_items: 0, users: [], devices: []};
     let infoItemInput: itemInput[] = [];
 
     let aspElement: HTMLSpanElement;

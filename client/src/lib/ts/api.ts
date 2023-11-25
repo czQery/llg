@@ -4,7 +4,7 @@ import {dataStore, infoStore} from "./global";
 
 export interface infoSum {
     build: string
-    selected_users: number
+    selected_items: number
     users: string[] | null
     devices: string[] | null
 }

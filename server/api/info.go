@@ -10,21 +10,21 @@ import (
 
 type InfoSum struct {
 	Build         string   `json:"build"`
-	SelectedUsers int      `json:"selected_users"`
+	SelectedUsers int      `json:"selected_items"`
 	Users         []string `json:"users"`
 	Devices       []string `json:"devices"`
 }
 
 func Info(c *fiber.Ctx) error {
 
-	users, usersErr := infoRead(tl.Config["users"].(string))
-	devices, devicesErr := infoRead(tl.Config["devices"].(string))
+	users, usersErr := infoRead(tl.Config["path_users"].(string))
+	devices, devicesErr := infoRead(tl.Config["path_devices"].(string))
 
 	if usersErr != nil || devicesErr != nil {
 		return c.Status(500).JSON(Response{Message: "unexpected internal error"})
 	}
 
-	return c.Status(200).JSON(Response{Data: InfoSum{Build: tl.Build, SelectedUsers: int(tl.Config["selected_users"].(float64)), Users: users, Devices: devices}})
+	return c.Status(200).JSON(Response{Data: InfoSum{Build: tl.Build, SelectedUsers: int(tl.Config["selected_items"].(float64)), Users: users, Devices: devices}})
 }
 
 func infoRead(folder string) ([]string, error) {

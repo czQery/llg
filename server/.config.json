@@ -1,6 +1,6 @@
 {
   "address": ":8893",
-  "selected_users": 3,
-  "users": "./data/users/",
-  "devices": "./data/devices/"
+  "selected_items": 3,
+  "path_users": "./data/users/",
+  "path_devices": "./data/devices/"
 }

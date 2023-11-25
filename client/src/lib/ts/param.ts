@@ -2,14 +2,14 @@ import {type itemInput} from "./global";
 import {getPaletteColor} from "./helper";
 import {type infoSum} from "./api";
 
-export const parseSelection = (name: "user" | "device", urlParams: URLSearchParams, info: infoSum): itemInput[] => {
-    let url: string | null = urlParams.get(name+"s");
+export const parseSelection = (type: "user" | "device", urlParams: URLSearchParams, info: infoSum): itemInput[] => {
+    let url: string | null = urlParams.get(type+"s");
 
     let data: itemInput[] = [];
     if (url) {
         let urlList: string[] = url.split(",").filter((u: string): boolean => {
 
-            if (name == "user" && info.users) {
+            if (type == "user" && info.users) {
                 for (const uInfo of info.users) {
                     if (uInfo == u) {
                         return true;
@@ -17,7 +17,7 @@ export const parseSelection = (name: "user" | "device", urlParams: URLSearchPara
                 }
             }
 
-            if (name == "device" && info.devices) {
+            if (type == "device" && info.devices) {
                 for (const uInfo of info.devices) {
                     if (uInfo == u) {
                         return true;
@@ -29,12 +29,12 @@ export const parseSelection = (name: "user" | "device", urlParams: URLSearchPara
         })
 
         data = urlList.map((u: string): itemInput => {
-            return <itemInput>{type: name, value: u, color: ""};
+            return <itemInput>{type: type, value: u, color: ""};
         });
     } else {
-        if (info.users) {
-            data = info.users.slice(0, info.selected_users).map((u: string): itemInput => {
-                return <itemInput>{type: name, value: u, color: ""}
+        if (info.users && type === "user") {
+            data = info.users.slice(0, info.selected_items).map((u: string): itemInput => {
+                return <itemInput>{type: type, value: u, color: ""}
             });
         }
     }

@@ -78,8 +78,8 @@ func Data(c *fiber.Ctx) error {
 	tl.Log("api", "data - users: "+strings.Join(usersParam, ","), "debug")
 	tl.Log("api", "data - devices: "+strings.Join(devicesParam, ","), "debug")
 
-	dataUsers, usersErr := dataRead("user", tl.Config["users"].(string), usersParam, dateParam, &searchDateList, &dbgLines)
-	dataDevices, devicesErr := dataRead("device", tl.Config["devices"].(string), devicesParam, dateParam, &searchDateList, &dbgLines)
+	dataUsers, usersErr := dataRead("user", tl.Config["path_users"].(string), usersParam, dateParam, &searchDateList, &dbgLines)
+	dataDevices, devicesErr := dataRead("device", tl.Config["path_devices"].(string), devicesParam, dateParam, &searchDateList, &dbgLines)
 
 	if usersErr != nil || devicesErr != nil {
 		return c.Status(500).JSON(Response{Message: "unexpected internal error"})
