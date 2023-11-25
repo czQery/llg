@@ -40,22 +40,7 @@ export const parseSelection = (name: "user" | "device", urlParams: URLSearchPara
     }
 
     for (const u of data) {
-        let color: string = getPaletteColor();
-        let ttl: number = 0;
-
-        for (let i: number = 0; i < data.length; i++) {
-            if (data[i].color == color && data[i].value != u.value) {
-                color = getPaletteColor();
-
-                if (ttl > data.length * data.length) {
-                    continue;
-                }
-
-                ttl = ttl + 1;
-                i = -1;
-            }
-        }
-        u.color = color;
+        u.color = getPaletteColor();
     }
 
     return data;

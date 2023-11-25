@@ -52,9 +52,19 @@ export const getRandomColor = (): string => {
     return "#" + c;
 }
 
+let colors: string[] = ["f28682", "0ceaf9", "fae100", "a845b3", "a09262", "d5334b", "60dd83", "f5980c", "fa147f"];
 export const getPaletteColor = (): string => {
-    const colors: string[] = ["f28682", "0ceaf9", "fae100", "a845b3", "a09262", "d5334b", "60dd83", "f5980c", "fa147f"]
-    return "#" + colors[Math.floor(Math.random() * (colors.length - 1))]
+
+    if (colors.length === 0) {
+        return getRandomColor();
+    }
+
+    let i: number = Math.floor(Math.random() * (colors.length - 1));
+    let cl: string = "#" + colors[i];
+
+    colors.splice(i, 1);
+
+    return cl;
 }
 
 export const isJSON = (response: Response): boolean => {

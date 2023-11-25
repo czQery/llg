@@ -32,21 +32,11 @@
 
             if (!item.color) {
                 let color = getPaletteColor();
-                let ttl = 0;
                 let uIndex = 0;
 
                 for (let i = 0; i < itemListSelect.length; i++) {
                     if (itemListSelect[i].value == item.value) {
                         uIndex = i;
-                    } else if (itemListSelect[i].color == color) {
-                        color = getPaletteColor();
-
-                        if (ttl > itemListSelect.length * itemListSelect.length) {
-                            continue;
-                        }
-
-                        ttl = ttl + 1;
-                        i = -1;
                     }
                 }
 
