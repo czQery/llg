@@ -191,7 +191,7 @@ func dataRead(tp string, folder string, items []string, date time.Time, dateList
 					} else {
 						// selected month check
 						if dateStart.Year() == date.Year() && dateStart.Month() == date.Month() {
-							searchSessionList = append(searchSessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: searchLogin[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+							searchSessionList = append(searchSessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: dataDetail(tp, searchLogin[1], searchLogin[2]), Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
 							(*dateList)[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
 						}
 					}
@@ -259,8 +259,8 @@ func dataRead(tp string, folder string, items []string, date time.Time, dateList
 					(*dateList)[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
 					(*dateList)[fileP[3]] = dateEnd.Unix() / 60 / 60 / 24
 
-					searchSessionList = append(searchSessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: searchLogin[2], Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
-					searchSessionList = append(searchSessionList, DataItemSession{Date: dateEnd.Unix() / 60 / 60 / 24, Detail: fileP[2], Time: []int{0, int(timeEnd.Unix() / 60)}})              // midnight to end
+					searchSessionList = append(searchSessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: dataDetail(tp, searchLogin[1], searchLogin[2]), Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+					searchSessionList = append(searchSessionList, DataItemSession{Date: dateEnd.Unix() / 60 / 60 / 24, Detail: dataDetail(tp, fileP[1], fileP[2]), Time: []int{0, int(timeEnd.Unix() / 60)}})                    // midnight to end
 
 					(*dateList)[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
 					(*dateList)[fileP[3]] = dateEnd.Unix() / 60 / 60 / 24
@@ -269,7 +269,7 @@ func dataRead(tp string, folder string, items []string, date time.Time, dateList
 					continue
 				}
 
-				searchSessionList = append(searchSessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: fileP[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
+				searchSessionList = append(searchSessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: dataDetail(tp, fileP[1], fileP[2]), Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
 				(*dateList)[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
 				search = false
 			}
@@ -288,17 +288,40 @@ func dataRead(tp string, folder string, items []string, date time.Time, dateList
 			} else {
 				// selected month check
 				if dateStart.Year() == date.Year() && dateStart.Month() == date.Month() {
-					searchSessionList = append(searchSessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: searchLogin[2], Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
+					searchSessionList = append(searchSessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: dataDetail(tp, searchLogin[1], searchLogin[2]), Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
 					(*dateList)[searchLogin[3]] = dateStart.Unix() / 60 / 60 / 24
 				}
 			}
 		}
 
 		if len(searchSessionList) > 0 {
+			if tp == "device" {
+				searchName = strings.Split(searchName, " ")[0]
+			}
 
 			list = append(list, DataItem{Name: searchName, Type: tp, Sessions: searchSessionList})
 		}
 	}
 
 	return list, nil
+}
+
+// dataDetail: return proper description based on item type
+// pos1: user/device
+// pos2: device/user
+func dataDetail(tp string, pos1 string, pos2 string) string {
+	switch tp {
+	case "user":
+		return pos2
+	case "device":
+
+		split := strings.Split(pos1, " ")
+		if len(split) < 2 {
+			return pos2
+		}
+
+		return pos2 + " " + split[1]
+	default:
+		return "unknown"
+	}
 }

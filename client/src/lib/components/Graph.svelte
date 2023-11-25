@@ -74,16 +74,15 @@
                                     return "Name: " + items[0]["dataset"]["label"] + detail + "\nSession: " + formatDuration(session) + "\nDay: " + formatDuration(day);
                                 }
 
-                                if (raw?.type === "user") {
-                                    aspElement.innerText = "\\\\" + rawSession.detail.split(" ")[0] + "\\c$";
-                                    detail = "\nPC: " + rawSession.detail.split(" ")[0] + "\nIP: " + rawSession.detail.split(" ")[1].replace("(", "").replace(")", "") + "\nType: user\n";
-                                    return "User: " + items[0]["dataset"]["label"] + detail + "\nSession: " + formatDuration(session) + "\nDay: " + formatDuration(day);
-                                }
-
-                                if (raw?.type === "device") {
-                                    aspElement.innerText = "\\\\" + items[0]["dataset"]["label"]!.split(" ")[0] + "\\c$";
-                                    detail = "\nPC: " + items[0]["dataset"]["label"]!.split(" ")[0] + "\nIP: " + items[0]["dataset"]["label"]!.split(" ")[1].replace("(", "").replace(")", "") + "\nType: device\n";
-                                    return "User: " + rawSession.detail + detail + "\nSession: " + formatDuration(session) + "\nDay: " + formatDuration(day);
+                                switch (raw?.type) {
+                                    case "user":
+                                        aspElement.innerText = "\\\\" + rawSession.detail.split(" ")[0] + "\\c$";
+                                        detail = "\nPC: " + rawSession.detail.split(" ")[0] + "\nIP: " + rawSession.detail.split(" ")[1].replace("(", "").replace(")", "") + "\nType: " + raw?.type + "\n";
+                                        return "User: " + items[0]["dataset"]["label"] + detail + "\nSession: " + formatDuration(session) + "\nDay: " + formatDuration(day);
+                                    case "device":
+                                        aspElement.innerText = "\\\\" + items[0]["dataset"]["label"]!.split(" ")[0] + "\\c$";
+                                        detail = "\nPC: " + items[0]["dataset"]["label"] + "\nIP: " + rawSession.detail.split(" ")[1].replace("(", "").replace(")", "") + "\nType: " + raw?.type + "\n";
+                                        return "User: " + rawSession.detail.split(" ")[0] + detail + "\nSession: " + formatDuration(session) + "\nDay: " + formatDuration(day);
                                 }
                             },
                             label: (item) => {
