@@ -44,6 +44,8 @@ services:
     restart: always
     volumes:
       - ./data/:/data/data/
+    # - ./users/:/data/data/users/
+    # - ./devices/:/data/data/devices/
     ports:
       - '8893:8893'
     tty: true
