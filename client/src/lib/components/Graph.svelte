@@ -30,6 +30,10 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 maxBarThickness: 80,
+                borderWidth: 0,
+                borderRadius: 3, // index.html var(--rad)
+                borderSkipped: false,
+                borderColor: "rgba(0, 0, 0, 0)",
                 plugins: {
                     legend: {
                         display: false,
@@ -44,6 +48,9 @@
                     },
                     tooltip: {
                         yAlign: "bottom",
+                        backgroundColor: "rgba(38, 36, 40, 0.9)", // index.html var(--c0)
+                        multiKeyBackground: "rgba(0, 0, 0, 0)",
+                        cornerRadius: 3, // index.html var(--rad)
                         //@ts-ignore
                         events: ["click", "touchstart"],
                         titleFont: {
@@ -88,6 +95,15 @@
                             label: (item) => {
                                 //@ts-ignore
                                 return [formatTime(item["raw"]["y"][0]) + " - " + formatTime(item["raw"]["y"][1]) + " (" + formatDate(item["raw"]["x"]) + ")"];
+                            },
+                            labelColor: function (item) {
+                                return {
+                                    borderColor: "rgba(0, 0, 0, 0)",
+                                    backgroundColor: "" + item.dataset.backgroundColor,
+                                    borderWidth: 0,
+                                    borderDash: [0, 0],
+                                    borderRadius: 3, // index.html var(--rad)
+                                };
                             },
                         }
                     }

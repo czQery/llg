@@ -186,6 +186,24 @@
 
     :global(.sv-item) {
         margin: 2px !important;
+        border-radius: var(--rad) !important;
+    }
+
+    :global(.sv-item-btn) {
+        border-radius: var(--rad) !important;
+    }
+
+    :global(.sv-item-btn:hover) {
+        background-color: var(--sv-item-btn-bg, var(--sv-item-selected-bg)) !important;
+        filter: var(--hover);
+    }
+
+    :global(.sv-item-btn svg) {
+        fill: var(--c0) !important;
+    }
+
+    :global(.sv-dropdown) {
+        border-radius: var(--rad) !important;
     }
 
     :global(.sv-dropdown .has-multiSelection) {
@@ -202,6 +220,29 @@
 
     :global(.sv-control.is-active > .has-multiSelection > div) {
         width: 100%;
+    }
+
+    :global(.sv-item-content) {
+        border-radius: var(--rad) !important;
+    }
+
+    :global(.sv-item-content div) {
+        display: flex;
+        width: 100%;
+        max-width: 133px;
+        overflow: hidden;
+    }
+
+    :global(.sv-item-content div svg) {
+        height: 19px;
+        width: 19px;
+        margin: 0 6px 0 0;
+        padding: 2px 0;
+        border-radius: var(--rad);
+        background-color: var(--bg);
+        stroke: white;
+        display: inline-block;
+        min-width: 19px;
     }
 
     #header {
@@ -225,6 +266,7 @@
         line-height: 70px;
         margin: 0;
         font-size: 80px;
+        overflow: hidden;
     }
 
     #header form {
