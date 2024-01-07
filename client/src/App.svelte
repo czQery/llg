@@ -173,15 +173,44 @@
         outline: none !important;
     }
 
+    :global(.sv-control:hover) {
+        cursor: text;
+    }
+
     :global(.sv-control.is-active) {
         border: 1px solid var(--cb) !important;
         outline: none !important;
     }
 
-    :global(.sv-content .inputBox) {
-        color: #000;
-        width: 1px;
-        height: 0 !important;
+    :global(.indicator-icon) {
+        transition: var(--transition) color linear !important;
+    }
+
+    :global(.indicator-icon:hover) {
+        cursor: pointer !important;
+    }
+
+    :global(.sv-content.sv-input-row) {
+        transition: var(--transition) font-size linear;
+    }
+
+    :global(.sv-content.sv-input-row:has(.inputBox:focus)) {
+        font-size: 0 !important;
+    }
+
+    :global(.inputBox) {
+        font-size: 16px !important;
+        color: #000 !important;
+    }
+
+    :global(.inputBox:focus::placeholder) {
+        color: #000 !important;
+        opacity: 0 !important;
+    }
+
+    :global(.inputBox::placeholder) {
+        color: #000 !important;
+        opacity: 0.4 !important;
     }
 
     :global(.sv-item) {
@@ -191,11 +220,16 @@
 
     :global(.sv-item-btn) {
         border-radius: var(--rad) !important;
+        transition: var(--transition) all linear !important;
     }
 
     :global(.sv-item-btn:hover) {
         background-color: var(--sv-item-btn-bg, var(--sv-item-selected-bg)) !important;
         filter: var(--hover);
+    }
+
+    :global(.sv-item-btn:active) {
+        animation: reverse click-scale 100ms !important;
     }
 
     :global(.sv-item-btn svg) {
@@ -216,6 +250,7 @@
 
     :global(.sv-dropdown-scroll .sv-group-header) {
         color: #000;
+        text-align: left !important;
     }
 
     :global(.sv-control.is-active > .has-multiSelection > div) {
@@ -229,8 +264,16 @@
     :global(.sv-item-content div) {
         display: flex;
         width: 100%;
-        max-width: 133px;
+        max-width: 183px;
         overflow: hidden;
+    }
+
+    :global(.sv-dd-item .sv-item) {
+        transition: var(--transition) all linear !important;
+    }
+
+    :global(.sv-dd-item .sv-item-content div) {
+        max-width: 192px !important;
     }
 
     :global(.sv-item-content div svg) {
@@ -265,6 +308,7 @@
         height: 70px;
         line-height: 70px;
         margin: 0;
+        max-width: max-content;
         font-size: 80px;
         overflow: hidden;
     }
@@ -296,14 +340,29 @@
     }
 
     #header form div input {
+        display: flex;
         height: 30px;
-        width: 180px;
+        width: 230px;
         border: 1px solid #FFF;
         font-size: 16px;
         border-radius: var(--rad);
         text-align: left;
         outline: none;
-        padding: 0 0 0 5px;
+        padding: 0 8px 0 5px;  /* 8px for edge calendar icon */
+    }
+
+    #header form div input:hover {
+        cursor: text;
+    }
+
+    #header form div input::-webkit-calendar-picker-indicator {
+        opacity: 0.2;
+        transition: var(--transition) opacity linear;
+    }
+
+    #header form div input::-webkit-calendar-picker-indicator:hover {
+        opacity: 0.4;
+        cursor: pointer;
     }
 
     #header form div input:focus {
@@ -312,7 +371,7 @@
 
     :global(.svelecte-control.svelecte) {
         height: 30px;
-        width: 180px !important;
+        width: 230px !important;
         flex-grow: 0 !important;
     }
 

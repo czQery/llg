@@ -75,5 +75,7 @@
           alwaysCollapsed={true}
           searchable={true}
           valueAsObject={true}
+          highlightFirstItem={true}
+          placeholder="Select"
           bind:value={itemListSelect}
           on:change={change}/>
