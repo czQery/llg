@@ -52,7 +52,7 @@ export const getRandomColor = (): string => {
     return "#" + c;
 }
 
-let colors: string[] = ["f28682", "0ceaf9", "fae100", "a845b3", "a09262", "d5334b", "60dd83", "f5980c", "fa147f"];
+let colors: string[] = ["fc7d79", "05C8D6", "ffcf00", "a845b3", "a09262", "d5334b", "3bde69", "f5980c", "fa147f"];
 export const getPaletteColor = (): string => {
 
     if (colors.length === 0) {
