@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
+	"os"
 	"strings"
 
 	"github.com/czQery/llg/api"
@@ -9,10 +11,24 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+func init() {
+	log.SetFormatter(&log.TextFormatter{
+		ForceColors:     true,
+		DisableColors:   false,
+		FullTimestamp:   true,
+		TimestampFormat: "02/01/2006 - 15:04:05",
+	})
+	log.SetOutput(os.Stdout)
+
+	if tl.Build == "dev" {
+		log.SetLevel(log.DebugLevel)
+	}
+}
+
 func main() {
-	tl.Log("main", "Login/Logoff Graph", "info")
-	tl.Log("main", "by: Štěpán Aubrecht", "info")
-	tl.Log("main", "build: "+tl.Build, "info")
+	log.Info("main - Login/Logoff Graph")
+	log.Info("main - by: Štěpán Aubrecht")
+	log.Info("main - build: " + tl.Build)
 
 	tl.LoadConfig()
 	tl.LoadDist()
@@ -45,9 +61,12 @@ func main() {
 		}
 	})
 
-	tl.Log("fiber", "started!", "info")
+	log.Info("fiber - started")
 
 	// Run
 	err := r.Listen(tl.Config["address"].(string))
-	tl.Log("fiber", err.Error(), "error")
+
+	log.WithFields(log.Fields{
+		"error": err.Error(),
+	}).Panic("fiber - server failed")
 }

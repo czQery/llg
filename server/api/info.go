@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/czQery/llg/tl"
 	"github.com/gofiber/fiber/v2"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"sort"
 	"strings"
@@ -34,7 +35,9 @@ func infoRead(folder string) ([]string, error) {
 	files, err := os.ReadDir(folder)
 
 	if err != nil {
-		tl.Log("api", "info - infoRead: readDir error: "+err.Error(), "error")
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error("api - infoRead: readDir")
 		return list, err
 	}
 

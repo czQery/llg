@@ -2,22 +2,11 @@ package tl
 
 import (
 	"encoding/json"
-	"fmt"
+	log "github.com/sirupsen/logrus"
 	"os"
-	"time"
 )
 
 var Build = "dev"
-
-func Log(prefix string, message string, messageType string) {
-	if messageType == "debug" && Build != "dev" {
-		return
-	}
-
-	now := time.Now()
-	messageType = "[" + messageType + "]"
-	fmt.Println("[" + now.Format("02/01/2006") + " - " + now.Format("15:04:05") + "] " + messageType + " " + prefix + " - " + message)
-}
 
 var Config map[string]interface{}
 
@@ -25,11 +14,13 @@ func LoadConfig() {
 	configFile, err1 := os.ReadFile("config.json")
 	err2 := json.Unmarshal(configFile, &Config)
 	if err1 != nil || err2 != nil {
-		Log("config", "load error: "+err1.Error()+" & "+err2.Error(), "error")
-		os.Exit(1)
+		log.WithFields(log.Fields{
+			"read_error": err1,
+			"json_error": err2,
+		}).Panic("config - load failed")
 	}
 
-	Log("config", "successfully loaded!", "info")
+	log.Info("config - successfully loaded")
 }
 
 var Dist bool
@@ -38,12 +29,14 @@ func LoadDist() {
 	_, err := os.ReadDir("./dist")
 	if err != nil {
 		Dist = false
-		Log("dist", "load failed: "+err.Error(), "warn")
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Warn("dist - load failed")
 		return
 	}
 
 	Dist = true
-	Log("dist", "successfully loaded!", "info")
+	log.Info("dist - successfully loaded")
 }
 
 func CleanSlice(slice *[]string) {

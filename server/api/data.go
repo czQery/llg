@@ -10,6 +10,7 @@ import (
 
 	"github.com/czQery/llg/tl"
 	"github.com/gofiber/fiber/v2"
+	log "github.com/sirupsen/logrus"
 )
 
 type DataSum struct {
@@ -74,9 +75,12 @@ func Data(c *fiber.Ctx) error {
 	// debug
 	dbgStart := time.Now()
 	dbgLines := 0
-	tl.Log("api", "data - reading init!", "debug")
-	tl.Log("api", "data - users: "+strings.Join(usersParam, ","), "debug")
-	tl.Log("api", "data - devices: "+strings.Join(devicesParam, ","), "debug")
+	log.Debug("api - data: reading init")
+
+	log.WithFields(log.Fields{
+		"users":   strings.Join(usersParam, ","),
+		"devices": strings.Join(usersParam, ","),
+	}).Debug("api - data: reading")
 
 	dataUsers, usersErr := dataRead("user", tl.Config["path_users"].(string), usersParam, dateParam, &searchDateList, &dbgLines)
 	dataDevices, devicesErr := dataRead("device", tl.Config["path_devices"].(string), devicesParam, dateParam, &searchDateList, &dbgLines)
@@ -97,7 +101,10 @@ func Data(c *fiber.Ctx) error {
 		dataDates = append(dataDates, searchDateList[k])
 	}
 
-	tl.Log("api", "data - reading done: "+time.Since(dbgStart).String()+" lines: "+strconv.Itoa(dbgLines), "debug")
+	log.WithFields(log.Fields{
+		"time":  time.Since(dbgStart).String(),
+		"lines": strconv.Itoa(dbgLines),
+	}).Debug("api - data: reading done")
 
 	if len(dataDates) == 0 {
 		return c.Status(404).JSON(Response{Message: "no data"})
@@ -116,7 +123,11 @@ func dataRead(tp string, folder string, items []string, date time.Time, dateList
 	// get files list
 	files, err := os.ReadDir(folder)
 	if err != nil {
-		tl.Log("api", "data - readDir error: "+err.Error(), "error")
+
+		log.WithFields(log.Fields{
+			"error": err.Error(),
+		}).Error("api - data: readDir")
+
 		return list, err
 	}
 
@@ -138,9 +149,12 @@ func dataRead(tp string, folder string, items []string, date time.Time, dateList
 			continue
 		}
 
-		fileData, err := os.ReadFile(folder + file.Name())
+		var fileData []byte
+		fileData, err = os.ReadFile(folder + file.Name())
 		if err != nil {
-			tl.Log("api", "data - readFile error: "+err.Error(), "error")
+			log.WithFields(log.Fields{
+				"error": err.Error(),
+			}).Error("api - data: readFile")
 		}
 
 		var (
@@ -187,7 +201,11 @@ func dataRead(tp string, folder string, items []string, date time.Time, dateList
 
 					// time & date sanity check
 					if timeStart.Unix() < 0 || dateStart.Unix() < 0 {
-						tl.Log("api", "data - session: "+searchLogin[1]+" invalid date: "+searchLogin[3]+" or time: "+searchLogin[4], "warn")
+						log.WithFields(log.Fields{
+							"session": searchLogin[1],
+							"date":    searchLogin[3],
+							"time":    searchLogin[4],
+						}).Warn("api - data: session invalid date or time")
 					} else {
 						// selected month check
 						if dateStart.Year() == date.Year() && dateStart.Month() == date.Month() {
@@ -234,14 +252,20 @@ func dataRead(tp string, folder string, items []string, date time.Time, dateList
 
 				// date sanity check
 				if dateStart.Unix() < 0 || dateEnd.Unix() < 0 {
-					tl.Log("api", "data - session: "+fileP[1]+" invalid date: "+searchLogin[3]+", "+fileP[3], "warn")
+					log.WithFields(log.Fields{
+						"session": fileP[1],
+						"date":    searchLogin[3] + "," + fileP[3],
+					}).Warn("api - data: session invalid date")
 					search = false
 					continue
 				}
 
 				// time sanity check
 				if timeStart.Unix() < 0 || timeEnd.Unix() < 0 {
-					tl.Log("api", "data - session: "+fileP[1]+" invalid time: "+searchLogin[4]+", "+fileP[4], "warn")
+					log.WithFields(log.Fields{
+						"session": fileP[1],
+						"time":    searchLogin[4] + "," + fileP[4],
+					}).Warn("api - data: session invalid time")
 					search = false
 					continue
 				}
@@ -284,7 +308,11 @@ func dataRead(tp string, folder string, items []string, date time.Time, dateList
 
 			// time & date sanity check
 			if timeStart.Unix() < 0 || dateStart.Unix() < 0 {
-				tl.Log("api", "data - session: "+searchLogin[1]+" invalid date: "+searchLogin[3]+" or time: "+searchLogin[4], "warn")
+				log.WithFields(log.Fields{
+					"session": searchLogin[1],
+					"date":    searchLogin[3],
+					"time":    searchLogin[4],
+				}).Warn("api - data: session invalid date or time")
 			} else {
 				// selected month check
 				if dateStart.Year() == date.Year() && dateStart.Month() == date.Month() {
