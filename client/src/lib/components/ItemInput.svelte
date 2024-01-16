@@ -4,11 +4,13 @@
     import {getPaletteColor, sleep} from "../ts/helper";
     import type {itemInput} from "../ts/global";
     import {itemInputStore} from "../ts/global";
-    import {IconUser, IconPcCase, IconHelp} from "../ts/icon";
+    import {IconHelp, IconPcCase, IconUser} from "../ts/icon";
+    import {onMount} from "svelte";
 
     export let op: object = [];
     let itemListSelect: itemInput[] = [];
     let init: boolean = true;
+    let itemInput: any;
 
     itemInputStore.subscribe((value: itemInput[]) => {
         if (value && init) {
@@ -47,35 +49,51 @@
                 item.color = color;
             }
 
-            style = "--bg: "+item.color;
-
-            //return '<div style="border-left: 4px solid ' + item.color + '; padding: 0 0 0 4px">' + item.value + '</div>';
+            style = "--bg: " + item.color;
         }
 
         switch (item.type) {
             case "user":
-                return '<div style="'+style+'">' + IconUser + item.value + '</div>';
+                return '<div style="' + style + '">' + IconUser + item.value + '</div>';
             case "device":
-                return '<div style="'+style+'">' + IconPcCase + item.value + '</div>';
+                return '<div style="' + style + '">' + IconPcCase + item.value + '</div>';
             default:
-                return '<div style="'+style+'">' + IconHelp + item.value + '</div>';
+                return '<div style="' + style + '">' + IconHelp + item.value + '</div>';
         }
 
     }
     addFormatter("item-color", itemColor);
+
+    onMount(() => {
+        let input = document.getElementById("items") as HTMLInputElement;
+        let control = document.querySelector(".sv-control") as HTMLElement
+        if (input && control) {
+            input.onmousedown = () => {
+                input.blur();
+            }
+            control.onmousedown = () => {
+                if (control.classList.contains("is-active")) itemInput.focus();
+            }
+            input.onfocus = () => {
+                if (control.classList.contains("is-active")) input.blur();
+            }
+        }
+    });
 </script>
 
-<Svelecte inputId="item"
+<Svelecte inputId="items"
           renderer="item-color"
           groupLabelField="groupHeader"
           groupItemsField="items"
           options={op}
           multiple={true}
           collapseSelection={true}
+          resetOnBlur={true}
           alwaysCollapsed={true}
           searchable={true}
           valueAsObject={true}
           highlightFirstItem={true}
           placeholder="Select"
           bind:value={itemListSelect}
+          bind:this={itemInput}
           on:change={change}/>

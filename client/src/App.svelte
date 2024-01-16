@@ -131,7 +131,7 @@
                        bind:this={dateInputElement}/>
             </div>
             <div>
-                <label for="item" style="letter-spacing: 1.5px">Items:</label>
+                <label for="items" style="letter-spacing: 1.5px">Items:</label>
                 <ItemInput op={[
                     {
                         groupHeader: "Users",
