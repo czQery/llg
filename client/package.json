@@ -14,15 +14,15 @@
     "@sveltejs/vite-plugin-svelte": "^3.0.1",
     "@tsconfig/svelte": "^5.0.2",
     "svelte": "^4.2.8",
-    "svelte-check": "^3.6.2",
+    "svelte-check": "^3.6.3",
     "tslib": "^2.6.2",
     "typescript": "^5.3.3",
     "vite": "^5.0.11"
   },
   "dependencies": {
-    "@types/node": "^20.10.6",
+    "@types/node": "^20.11.4",
     "chart.js": "^4.4.1",
-    "lucide-svelte": "^0.306.0",
+    "lucide-svelte": "^0.311.0",
     "svelecte": "^3.17.2"
   }
 }
