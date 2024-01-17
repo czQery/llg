@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/czQery/llg/tl"
+	"github.com/czQery/llg/backend/tl"
 	"github.com/gofiber/fiber/v2"
 	log "github.com/sirupsen/logrus"
 	"os"

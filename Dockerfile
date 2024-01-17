@@ -6,8 +6,8 @@ LABEL authors="czQery"
 RUN mkdir /data
 WORKDIR /data
 
-COPY /client/dist dist
-COPY /server/.config.json config.json
-COPY /server/llg llg
+COPY /frontend/dist dist
+COPY /backend/.config.json config.json
+COPY /backend/llg llg
 
 CMD ["./llg"]

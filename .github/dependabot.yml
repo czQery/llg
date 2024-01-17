@@ -6,10 +6,10 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/client"
+    directory: "/frontend"
     schedule:
       interval: "monthly"
   - package-ecosystem: "gomod"
-    directory: "/server"
+    directory: "/backend"
     schedule:
       interval: "monthly"

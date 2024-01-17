@@ -1,17 +1,17 @@
-# Client
-client/logs
-client/*.log*
-client/node_modules
-client/dist
-client/dist-ssr
-client/*.local
-client/.env
+# Frontend
+frontend/logs
+frontend/*.log*
+frontend/node_modules
+frontend/dist
+frontend/dist-ssr
+frontend/*.local
+frontend/.env
 
-# Server
-server/llg.exe
-server/llg
-server/dist
-server/config.json
+# Backend
+backend/llg.exe
+backend/llg
+backend/dist
+backend/config.json
 
 .idea
 data

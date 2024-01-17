@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/czQery/llg/api"
-	"github.com/czQery/llg/tl"
+	"github.com/czQery/llg/backend/api"
+	"github.com/czQery/llg/backend/tl"
 	"github.com/gofiber/fiber/v2"
 )
 

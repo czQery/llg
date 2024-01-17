@@ -1,4 +1,4 @@
-module github.com/czQery/llg
+module github.com/czQery/llg/backend
 
 go 1.21
 
