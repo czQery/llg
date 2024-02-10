@@ -1,0 +1,56 @@
+{
+  "name": "Login/Logoff Graph",
+  "short_name": "LLG",
+  "lang": "en-us",
+  "icons": [
+    {
+      "src": "/image/favicon-64.png",
+      "type": "image/png",
+      "sizes": "64x64"
+    },
+    {
+      "src": "/image/favicon-mask-64.png",
+      "type": "image/png",
+      "sizes": "64x64",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/image/favicon-128.png",
+      "type": "image/png",
+      "sizes": "128x128"
+    },
+    {
+      "src": "/image/favicon-mask-128.png",
+      "type": "image/png",
+      "sizes": "128x128",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/image/favicon-256.png",
+      "type": "image/png",
+      "sizes": "256x256"
+    },
+    {
+      "src": "/image/favicon-mask-256.png",
+      "type": "image/png",
+      "sizes": "256x256",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "/?pwa=true",
+  "start_url": "/?pwa=true",
+  "scope": "/",
+  "theme_color": "#262428",
+  "background_color": "#262428",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "categories": [
+    "utilities",
+    "productivity",
+    "security"
+  ],
+  "shortcuts": [],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "description": "Session tracking tool"
+}
