@@ -41,27 +41,22 @@ func infoRead(folder string) ([]string, error) {
 		return list, err
 	}
 
+	var name string
+
 	for _, file := range files {
 		if file.IsDir() || !strings.HasSuffix(file.Name(), ".log") {
 			continue
 		}
 
-		name := ""
+		name = file.Name()
 
-		split := strings.Split(file.Name(), ".")
-		for d := 0; d < len(split)-1; d++ {
-			if name == "" {
-				name = split[d]
-			} else {
-				name = name + "." + split[d]
-			}
-		}
-
-		name = strings.ReplaceAll(name, "-login", "")
+		name = strings.TrimSuffix(name, ".log")
+		name = strings.TrimSuffix(name, "-login")
 
 		list = append(list, name)
 	}
 
+	// alphabetically sort list
 	sort.Slice(list, func(i, j int) bool {
 		return strings.ToLower(list[i]) < strings.ToLower(list[j])
 	})

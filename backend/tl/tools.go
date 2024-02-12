@@ -39,6 +39,7 @@ func LoadDist() {
 	log.Info("dist - successfully loaded")
 }
 
+// CleanSlice removes empty items
 func CleanSlice(slice *[]string) {
 	var tmp []string
 

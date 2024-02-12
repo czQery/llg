@@ -31,6 +31,9 @@ export const loadInfo = async (): Promise<boolean> => {
 export interface dataSum {
     dates: number[]
     items: dataItem[]
+
+    lines: number
+    time: string
 }
 
 export interface dataItem {
