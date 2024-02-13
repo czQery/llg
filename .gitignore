@@ -9,6 +9,7 @@ frontend/.env
 
 # Backend
 backend/llg.exe
+backend/llg_old.exe
 backend/llg
 backend/dist
 backend/config.json

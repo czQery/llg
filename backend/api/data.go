@@ -19,8 +19,8 @@ type DataSum struct {
 	Dates []int64    `json:"dates"`
 	Items []DataItem `json:"items"`
 
-	Lines int    `json:"lines"`
-	Time  string `json:"time"`
+	Lines int   `json:"lines"`
+	Time  int64 `json:"time"`
 }
 
 type DataItem struct {
@@ -171,7 +171,7 @@ func Data(c *fiber.Ctx) error {
 		return c.Status(404).JSON(Response{Message: "no data"})
 	}
 
-	return c.Status(200).JSON(Response{Data: DataSum{Dates: dataDates, Items: append(sourceUsers.itemList, sourceDevices.itemList...), Lines: sourceUsers.lines + sourceDevices.lines, Time: time.Since(execTime).String()}})
+	return c.Status(200).JSON(Response{Data: DataSum{Dates: dataDates, Items: append(sourceUsers.itemList, sourceDevices.itemList...), Lines: sourceUsers.lines + sourceDevices.lines, Time: time.Since(execTime).Nanoseconds()}})
 }
 
 func (src *dataSource) readFolder() error {
@@ -299,8 +299,9 @@ func (src *dataSource) readFileLine(search *dataSearch, fileLineIndex *int, file
 		}
 	}
 
+	switch fileP[0] {
 	// mark session start
-	if fileP[0] == "login" {
+	case "login":
 		if !search.active && *fileLineIndex == len(*fileLines)-1 {
 			search.active = true
 			search.name = fileP[1]
@@ -337,11 +338,8 @@ func (src *dataSource) readFileLine(search *dataSearch, fileLineIndex *int, file
 			search.login = fileP
 			return
 		}
-	}
-
 	// mark session end
-	if fileP[0] == "logoff" {
-
+	case "logoff":
 		var (
 			timeStart time.Time
 			timeEnd   time.Time

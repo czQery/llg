@@ -11,6 +11,8 @@
     let info: infoSum = {build: "", selected_items: 0, users: [], devices: []};
     let infoItemInput: itemInput[] = [];
 
+    let data: dataSum = {dates: [], items: [], time: 0, lines: 0};
+
     let aspElement: HTMLSpanElement;
     let dateInputElement: HTMLInputElement;
     let itemInputList: itemInput[] = [];
@@ -36,6 +38,12 @@
         if (value) {
             itemInputList = value;
             render();
+        }
+    });
+
+    dataStore.subscribe((value: dataSum) => {
+        if (value) {
+            data = value;
         }
     });
 
@@ -83,7 +91,7 @@
         window.history.replaceState(null, "", url.toString());
 
         if (itemInputList.length === 0) {
-            dataStore.set({} as dataSum);
+            dataStore.set({dates: [], items: [], time: 0, lines: 0} as dataSum);
             return;
         }
 
@@ -158,6 +166,11 @@
     <SumGraph/>
     <footer id="footer">
         <span>Created by <a href="https://qery.cz/l/g_llg">Štěpán Aubrecht</a></span>
+        <div id="stats">
+            <span>{data.time / 1_000_000 + " ms"}</span>
+            <span>|</span>
+            <span>{data.lines + " lines"}</span>
+        </div>
         <span>build: <a href="https://github.com/czQery/llg/releases">{info.build}</a></span>
     </footer>
     <div id="app-end" style="display: block;opacity: 0;width: 100%;height: 0px;position: relative;"></div>
@@ -418,11 +431,43 @@
     #footer {
         padding: 10px 0 0 0;
         width: 100%;
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
         color: white;
         font-size: 15px;
-        text-align: right;
+    }
+
+    #footer span {
+        width: max-content;
+    }
+
+    #footer span:first-child {
+        margin: 0 auto 0 0;
+    }
+
+    #footer span:last-child {
+        margin: 0 0 0 auto;
+    }
+
+    #footer #stats {
+        display: flex;
+        gap: 5px;
+        opacity: 0.2;
+        margin: 0 auto;
+    }
+
+    #footer #stats span {
+        display: flex;
+    }
+
+    #footer #stats span:first-child {
+        width: 100px;
+        justify-content: end;
+    }
+
+    #footer #stats span:last-child {
+        width: 100px;
+        justify-content: start;
     }
 
     @media screen and (max-width: 809px) {
@@ -456,6 +501,11 @@
             margin: 0;
         }
 
+        #footer #stats {
+            width: 0;
+            height: 0;
+            opacity: 0;
+        }
     }
 
     @media screen and (max-width: 519px) {

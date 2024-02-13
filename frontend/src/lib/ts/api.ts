@@ -33,7 +33,7 @@ export interface dataSum {
     items: dataItem[]
 
     lines: number
-    time: string
+    time: number
 }
 
 export interface dataItem {

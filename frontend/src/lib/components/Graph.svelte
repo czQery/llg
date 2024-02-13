@@ -7,7 +7,7 @@
     export let itemInputList: itemInput[] = [];
     export let aspElement: HTMLSpanElement;
     let chElement: HTMLCanvasElement;
-    let data: dataSum = {dates: [], items: []};
+    let data: dataSum = {dates: [], items: [], time: 0, lines: 0};
 
     Chart.register(LinearScale, BarController, BarElement, PointElement, Tooltip);
     let chart: Chart<"bar", (number[] | undefined)[], number> | undefined;
