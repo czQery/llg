@@ -68,7 +68,7 @@ jobs:
         env:
           CGO_ENABLED: 0
         run: |
-          go build -o ${{ matrix.artifact_name }} -ldflags="-X github.com/czQery/llg/tl.Build=${{ github.event.release.tag_name }}"
+          go build -o ${{ matrix.artifact_name }} -ldflags="-X github.com/czQery/llg/backend/tl.Build=${{ github.event.release.tag_name }}"
           cp -r ${{ matrix.artifact_name }} ../${{ matrix.asset_name }}
           cp .config.json ../${{ matrix.asset_name }}/config.json
 
