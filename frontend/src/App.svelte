@@ -473,7 +473,7 @@
     @media screen and (max-width: 809px) {
         #header {
             grid-template-columns: 1fr;
-            grid-template-rows: min-content repeat(2, 70px);
+            grid-template-rows: min-content 70px 30px;
         }
 
         #header form {
@@ -493,12 +493,13 @@
         }
 
         #header-asp span {
-            text-align: left;
             margin: 0;
+            display: none;
         }
 
         #header-asp button {
             margin: 0;
+            max-width: none;
         }
 
         #footer #stats {
