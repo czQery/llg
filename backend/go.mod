@@ -3,7 +3,7 @@ module github.com/czQery/llg/backend
 go 1.22
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.0
+	github.com/gofiber/fiber/v2 v2.52.4
 	github.com/sirupsen/logrus v1.9.3
 )
 
