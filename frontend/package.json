@@ -20,7 +20,7 @@
     "vite": "^5.1.7"
   },
   "dependencies": {
-    "@types/node": "^20.11.18",
+    "@types/node": "^20.12.7",
     "chart.js": "^4.4.2",
     "lucide-svelte": "^0.331.0",
     "svelecte": "^3.17.3"
