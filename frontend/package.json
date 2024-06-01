@@ -22,7 +22,7 @@
   "dependencies": {
     "@types/node": "^20.12.7",
     "chart.js": "^4.4.2",
-    "lucide-svelte": "^0.368.0",
+    "lucide-svelte": "^0.381.0",
     "svelecte": "^3.17.3"
   }
 }
