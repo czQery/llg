@@ -36,21 +36,17 @@ jobs:
         with:
           credentials: ${{secrets.GIT_TOKEN}}
 
-      - name: Set up Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: "npm"
-          cache-dependency-path: "./frontend/package-lock.json"
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v1
 
-      - name: Node install dependencies
+      - name: Bun install dependencies
         working-directory: ./frontend
-        run: npm install
+        run: bun i
 
-      - name: Node build
+      - name: Bun build
         working-directory: ./frontend
         run: |
-          npm run build
+          bun run build
           mkdir -p ../${{ matrix.asset_name }} && cp -r dist ../${{ matrix.asset_name }}/dist
 
       - name: Set up Go
@@ -68,7 +64,7 @@ jobs:
         env:
           CGO_ENABLED: 0
         run: |
-          go build -o ${{ matrix.artifact_name }} -ldflags="-X github.com/czQery/llg/backend/tl.Build=${{ github.event.release.tag_name }}"
+          go build -o ${{ matrix.artifact_name }} -ldflags="-s -w -X github.com/czQery/llg/backend/tl.Build=${{ github.event.release.tag_name }}"
           cp -r ${{ matrix.artifact_name }} ../${{ matrix.asset_name }}
           cp .config.json ../${{ matrix.asset_name }}/config.json
 

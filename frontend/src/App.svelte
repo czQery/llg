@@ -371,6 +371,7 @@
     #header form div input::-webkit-calendar-picker-indicator {
         opacity: 0.2;
         transition: var(--transition) opacity linear;
+        margin: 0 0 0 55px;
     }
 
     #header form div input::-webkit-calendar-picker-indicator:hover {

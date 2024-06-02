@@ -9,6 +9,7 @@ import (
 	"github.com/czQery/llg/backend/api"
 	"github.com/czQery/llg/backend/tl"
 	"github.com/gofiber/fiber/v2"
+	//_ "net/http/pprof"
 )
 
 func init() {
@@ -29,6 +30,10 @@ func main() {
 	log.Info("main - Login/Logoff Graph")
 	log.Info("main - by: Štěpán Aubrecht")
 	log.Info("main - build: " + tl.Build)
+
+	/*go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()*/
 
 	tl.LoadConfig()
 	tl.LoadDist()
