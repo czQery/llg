@@ -23,7 +23,7 @@
     "@types/node": "^20.12.7",
     "chart.js": "^4.4.2",
     "lucide-svelte": "^0.368.0",
-    "svelecte": "^3.17.3"
+    "svelecte": "^4.2.2"
   },
   "trustedDependencies": [
     "svelte-preprocess"
