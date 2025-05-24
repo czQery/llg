@@ -1,17 +1,12 @@
-<p align="center" style="text-align: center">
+<div align="center" style="text-align: center">
   <img src="https://github.com/czQery/llg/blob/main/.github/banner.png?raw=true" alt="Logo">
   <br>
-  <a href="https://goreportcard.com/report/github.com/czQery/llg/backend">
-      <img src="https://goreportcard.com/badge/github.com/czQery/llg/backend" alt="report"/>
-  </a>
-  <a href="https://github.com/czQery/llg/actions" style="text-decoration: none">
-    <img src="https://img.shields.io/github/actions/workflow/status/czQery/llg/release.yml" alt="build"/>
-  </a>
-  <a href="https://github.com/czQery/llg/releases/latest" style="text-decoration: none">
-    <img src="https://img.shields.io/github/v/release/czQery/llg" alt="release"/>
-  </a>
-  <br>
-</p>
+  
+  [![Badge Report]][Report]
+  [![Badge Actions]][Actions]
+  [![Badge Release]][Release]
+  
+</div>
 
 # <a href="#installation" id="installation" name="installation">Installation</a>
 
@@ -78,3 +73,16 @@ logoff;PC (0.0.0.0);user1;01.01.1970;00:01
 login;PC (0.0.0.0);user2;02.01.1970;00:00
 logoff;PC (0.0.0.0);user2;02.01.1970;00:01
 ```
+
+<!----------------------------------------------------------------------------->
+
+[Report]: https://goreportcard.com/report/github.com/czQery/llg/backend
+[Badge Report]: https://goreportcard.com/badge/github.com/czQery/llg/backend
+
+[Actions]: https://github.com/czQery/llg/actions
+[Badge Actions]: https://img.shields.io/github/actions/workflow/status/czQery/llg/release.yml
+
+[Release]: https://github.com/czQery/llg/releases/latest
+[Badge Release]: https://img.shields.io/github/v/release/czQery/llg
+
+<!----------------------------------------------------------------------------->
