@@ -11,8 +11,10 @@ frontend/.env
 backend/llg.exe
 backend/llg_old.exe
 backend/llg
+backend/llg_old
 backend/dist
 backend/config.json
 
 .idea
 data
+NOTES.md

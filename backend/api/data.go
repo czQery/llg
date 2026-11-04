@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/czQery/llg/backend/tl"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -47,7 +47,7 @@ type dataSource struct {
 }
 
 type dataSearch struct {
-	active      bool
+	active      bool // searching for logoff
 	name        string
 	login       []string
 	logoff      []string
@@ -58,7 +58,7 @@ type dataSearch struct {
 const timeLayout = "02.01.2006-15:04"
 const timeLayoutParam = "2006-01"
 
-func Data(c *fiber.Ctx) error {
+func Data(c fiber.Ctx) error {
 	var (
 		dataDates          []int64
 		searchDateList     = make(map[string]int64)
@@ -318,7 +318,7 @@ func (src *dataSource) readFileLineLogin(search *dataSearch, fileLineIndex *int,
 		search.login = *fileLineSegments
 	}
 
-	// fill login to midnight if (the closest login is the next day || this is the last login in log)
+	// fill login to midnight if (the closest login is the next day || this is the last login in log/month)
 	if search.active && (search.login[3] != (*fileLineSegments)[3] || (*fileLineIndex == len(*fileLines)-1 && time.Now().Format("02.01.2006") != search.login[3])) {
 
 		timeStart := tl.ParseTime("01.01.1970-" + search.login[4])
@@ -362,6 +362,11 @@ func (src *dataSource) readFileLineLogoff(search *dataSearch, fileLineSegments *
 	timeEnd = tl.ParseTime("01.01.1970-" + (*fileLineSegments)[4])
 	dateEnd = tl.ParseTime((*fileLineSegments)[3] + "-00:00")
 
+	// hack for logs starting with logoff
+	if len(search.login) == 0 {
+		search.login = (*fileLineSegments)
+	}
+
 	if search.active { // login as start
 		timeStart = tl.ParseTime("01.01.1970-" + search.login[4])
 		dateStart = tl.ParseTime(search.login[3] + "-00:00")
@@ -379,7 +384,6 @@ func (src *dataSource) readFileLineLogoff(search *dataSearch, fileLineSegments *
 			"session": (*fileLineSegments)[1],
 			"date":    search.login[3] + "," + (*fileLineSegments)[3],
 		}).Warn("api - data: session invalid date")
-		search.active = false
 		return
 	}
 
@@ -389,16 +393,15 @@ func (src *dataSource) readFileLineLogoff(search *dataSearch, fileLineSegments *
 			"session": (*fileLineSegments)[1],
 			"time":    search.login[4] + "," + (*fileLineSegments)[4],
 		}).Warn("api - data: session invalid time")
-		search.active = false
 		return
 	}
 
 	// selected month check
 	if dateStart.Year() != src.date.Year() || dateStart.Month() != src.date.Month() || dateEnd.Year() != src.date.Year() || dateEnd.Month() != src.date.Month() {
-		search.active = false
 		return
 	}
 
+	search.active = false
 	search.logoff = *fileLineSegments
 
 	// over midnight check
@@ -408,15 +411,11 @@ func (src *dataSource) readFileLineLogoff(search *dataSearch, fileLineSegments *
 
 		src.addDate(&search.login[3], dateStart.Unix()/60/60/24)
 		src.addDate(&(*fileLineSegments)[3], dateEnd.Unix()/60/60/24)
-
-		search.active = false
 		return
 	}
 
 	search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail((*fileLineSegments)[1], (*fileLineSegments)[2]), Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
 	src.addDate(&search.login[3], dateStart.Unix()/60/60/24)
-
-	search.active = false
 }
 
 func (src *dataSource) addCurrentSession(search *dataSearch) {

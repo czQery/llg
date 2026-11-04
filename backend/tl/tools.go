@@ -1,10 +1,11 @@
 package tl
 
 import (
-	"encoding/json"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"time"
+
+	"github.com/goccy/go-json"
+	log "github.com/sirupsen/logrus"
 )
 
 var Build = "dev"

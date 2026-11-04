@@ -1,12 +1,13 @@
 package api
 
 import (
-	"github.com/czQery/llg/backend/tl"
-	"github.com/gofiber/fiber/v2"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"sort"
 	"strings"
+
+	"github.com/czQery/llg/backend/tl"
+	"github.com/gofiber/fiber/v3"
+	log "github.com/sirupsen/logrus"
 )
 
 type InfoSum struct {
@@ -16,7 +17,7 @@ type InfoSum struct {
 	Devices       []string `json:"devices"`
 }
 
-func Info(c *fiber.Ctx) error {
+func Info(c fiber.Ctx) error {
 
 	users, usersErr := infoRead(tl.Config["path_users"].(string))
 	devices, devicesErr := infoRead(tl.Config["path_devices"].(string))
