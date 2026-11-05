@@ -2,7 +2,6 @@
   <img src="https://github.com/czQery/llg/blob/main/.github/banner.png?raw=true" alt="Logo">
   <br>
   
-  [![Badge Report]][Report]
   [![Badge Actions]][Actions]
   [![Badge Release]][Release]
   
@@ -75,9 +74,6 @@ logoff;PC (0.0.0.0);user2;02.01.1970;00:01
 ```
 
 <!----------------------------------------------------------------------------->
-
-[Report]: https://goreportcard.com/report/github.com/czQery/llg/backend
-[Badge Report]: https://goreportcard.com/badge/github.com/czQery/llg/backend
 
 [Actions]: https://github.com/czQery/llg/actions
 [Badge Actions]: https://img.shields.io/github/actions/workflow/status/czQery/llg/release.yml
