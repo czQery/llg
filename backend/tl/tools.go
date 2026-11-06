@@ -79,9 +79,9 @@ func ParseTime(tm string) time.Time {
 		offset = offset + 1
 	}
 
-	minute := (int(tm[14-offset])-'0')*10 + int(tm[15-offset]) - '0'
-	if tm[12-offset] == ':' {
-		minute = int(tm[14-offset]) - '0'
+	minute := int(tm[14-offset]) - '0'
+	if len(tm) > 15-offset {
+		minute = (int(tm[14-offset])-'0')*10 + int(tm[15-offset]) - '0'
 	}
 
 	return time.Date(year, month, day, hour, minute, 0, 0, time.UTC)
