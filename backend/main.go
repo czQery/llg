@@ -4,6 +4,8 @@ import (
 	"os"
 	"strings"
 
+	//_ "net/http/pprof"
+
 	"github.com/czQery/llg/backend/api"
 	"github.com/czQery/llg/backend/tl"
 	"github.com/goccy/go-json"
@@ -11,7 +13,6 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/compress"
 	"github.com/gofiber/fiber/v3/middleware/static"
 	log "github.com/sirupsen/logrus"
-	//_ "net/http/pprof"
 )
 
 func init() {
@@ -33,9 +34,9 @@ func main() {
 	log.Info("main - by: Štěpán Aubrecht")
 	log.Info("main - build: " + tl.Build)
 
-	/*go func() {
+	/* go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()*/
+	}() */
 
 	tl.LoadConfig()
 	tl.LoadDist()

@@ -2,6 +2,7 @@ package api
 
 import (
 	"bufio"
+	"bytes"
 	"maps"
 	"net/url"
 	"os"
@@ -50,10 +51,18 @@ type dataSource struct {
 type dataSearch struct {
 	active      bool // searching for logoff
 	name        string
-	login       []string
-	logoff      []string
+	login       dataLine
+	logoff      dataLine
 	sessionList []DataItemSession
 	lines       int
+}
+
+type dataLine struct {
+	action string
+	name   string
+	detail string
+	date   string
+	time   string
 }
 
 const timeLayout = "02.01.2006-15:04"
@@ -61,7 +70,7 @@ const timeLayoutParam = "2006-01"
 
 func Data(c fiber.Ctx) error {
 	var (
-		dataDates          []int64
+		dataDates          = make([]int64, 0, 30)
 		searchDateList     = make(map[string]int64)
 		searchDateListKeys = make([]string, 0, len(searchDateList))
 
@@ -221,14 +230,24 @@ func (src *dataSource) readFile(file *os.DirEntry) {
 		fileOpen *os.File
 		scanner  *bufio.Scanner
 
-		line string
+		lineRaw      []byte
+		lineRawSplit [5][]byte
+		line         = dataLine{
+			action: "",
+			name:   "",
+			detail: "",
+			date:   "",
+			time:   "",
+		}
+
+		lineDate time.Time
 
 		search = dataSearch{
 			active:      false,
 			name:        "",
-			login:       []string{},
-			logoff:      []string{},
-			sessionList: []DataItemSession{},
+			login:       dataLine{},
+			logoff:      dataLine{},
+			sessionList: make([]DataItemSession, 0, 30),
 			lines:       0,
 		}
 
@@ -265,7 +284,30 @@ func (src *dataSource) readFile(file *os.DirEntry) {
 	// read all lines in file
 	scanner = bufio.NewScanner(fileOpen)
 	for scanner.Scan() {
-		line = scanner.Text()
+		lineRaw = scanner.Bytes()
+		search.lines = search.lines + 1
+
+		if !getSegment(&(lineRawSplit[0]), &lineRaw) ||
+			!getSegment(&(lineRawSplit[1]), &lineRaw) ||
+			!getSegment(&(lineRawSplit[2]), &lineRaw) ||
+			!getSegment(&(lineRawSplit[3]), &lineRaw) {
+			continue
+		}
+		lineRawSplit[4] = lineRaw
+
+		// skip lines outside of selected time range
+		line.date = string(lineRawSplit[3])
+		lineDate = tl.ParseTime(line.date + "-00:00")
+		if lineDate.Year() != src.date.Year() || lineDate.Month() != src.date.Month() {
+			continue
+		}
+
+		// cast the rest to string
+		line.action = string(lineRawSplit[0])
+		line.name = string(lineRawSplit[1])
+		line.detail = string(lineRawSplit[2])
+		line.time = string(lineRawSplit[4])
+
 		src.readFileLine(&search, &line)
 	}
 
@@ -294,41 +336,37 @@ func (src *dataSource) readFile(file *os.DirEntry) {
 	return
 }
 
-func (src *dataSource) readFileLine(search *dataSearch, fileLine *string) {
+func (src *dataSource) readFileLine(search *dataSearch, fileLine *dataLine) {
 
-	*fileLine = strings.ReplaceAll(*fileLine, "\r", "")
-	fileLineSegments := strings.Split(*fileLine, ";")
-	search.lines = search.lines + 1
-
-	switch fileLineSegments[0] {
+	switch fileLine.action {
 	case "login":
 		// mark session start
-		src.readFileLineLogin(search, &fileLineSegments)
+		src.readFileLineLogin(search, fileLine)
 	case "logoff":
 		// mark session end
-		src.readFileLineLogoff(search, &fileLineSegments)
+		src.readFileLineLogoff(search, fileLine)
 	}
 }
 
-func (src *dataSource) readFileLineLogin(search *dataSearch, fileLineSegments *[]string) {
+func (src *dataSource) readFileLineLogin(search *dataSearch, fileLine *dataLine) {
 	// fill the prevous active session to midnight if this login is from a different day than the previous login
-	if search.active && search.login[3] != (*fileLineSegments)[3] {
+	if search.active && search.login.date != fileLine.date {
 
-		timeStart := tl.ParseTime("01.01.1970-" + search.login[4])
-		dateStart := tl.ParseTime(search.login[3] + "-00:00")
+		timeStart := tl.ParseTime("01.01.1970-" + search.login.time)
+		dateStart := tl.ParseTime(search.login.date + "-00:00")
 
 		// time & date sanity check
 		if timeStart.Unix() < 0 || dateStart.Unix() < 0 {
 			log.WithFields(log.Fields{
-				"session": search.login[1],
-				"date":    search.login[3],
-				"time":    search.login[4],
+				"session": search.login.name,
+				"date":    search.login.date,
+				"time":    search.login.time,
 			}).Warn("api - data: session invalid date or time")
 		} else {
 			// selected month check
 			if dateStart.Year() == src.date.Year() && dateStart.Month() == src.date.Month() {
-				search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(search.login[1], search.login[2]), Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
-				src.addDate(&search.login[3], dateStart.Unix()/60/60/24)
+				search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(search.login.name, search.login.detail), Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+				src.addDate(&search.login.date, dateStart.Unix()/60/60/24)
 			}
 		}
 
@@ -337,13 +375,13 @@ func (src *dataSource) readFileLineLogin(search *dataSearch, fileLineSegments *[
 
 	if !search.active {
 		search.active = true
-		search.name = (*fileLineSegments)[1]
-		search.login = *fileLineSegments
+		search.name = fileLine.name
+		search.login = *fileLine
 		return
 	}
 }
 
-func (src *dataSource) readFileLineLogoff(search *dataSearch, fileLineSegments *[]string) {
+func (src *dataSource) readFileLineLogoff(search *dataSearch, fileLine *dataLine) {
 	var (
 		timeStart time.Time
 		timeEnd   time.Time
@@ -353,20 +391,20 @@ func (src *dataSource) readFileLineLogoff(search *dataSearch, fileLineSegments *
 	)
 
 	// hack for logs starting with logoff
-	if len(search.login) == 0 {
-		search.login = (*fileLineSegments)
+	if search.login.action == "" {
+		search.login = *fileLine
 	}
 
-	timeEnd = tl.ParseTime("01.01.1970-" + (*fileLineSegments)[4])
-	dateEnd = tl.ParseTime((*fileLineSegments)[3] + "-00:00")
+	timeEnd = tl.ParseTime("01.01.1970-" + fileLine.time)
+	dateEnd = tl.ParseTime(fileLine.date + "-00:00")
 
-	timeStart = tl.ParseTime("01.01.1970-" + search.login[4])
-	dateStart = tl.ParseTime(search.login[3] + "-00:00")
+	timeStart = tl.ParseTime("01.01.1970-" + search.login.time)
+	dateStart = tl.ParseTime(search.login.date + "-00:00")
 
 	if !search.active || dateStart.Year() != dateEnd.Year() || dateStart.Month() != dateEnd.Month() { // missing login
-		if len(search.logoff) > 4 && search.logoff[3] == (*fileLineSegments)[3] { // previous logoff in same day => filling session from the previous logoff
-			timeStart = tl.ParseTime("01.01.1970-" + search.logoff[4])
-			dateStart = tl.ParseTime(search.logoff[3] + "-00:00")
+		if search.logoff.action != "" && search.logoff.date == fileLine.date { // previous logoff in same day => filling session from the previous logoff
+			timeStart = tl.ParseTime("01.01.1970-" + search.logoff.time)
+			dateStart = tl.ParseTime(search.logoff.date + "-00:00")
 		} else { // first logoff => filling session from 00:00
 			timeStart = tl.ParseTime("01.01.1970-00:00")
 			dateStart = dateEnd
@@ -375,24 +413,24 @@ func (src *dataSource) readFileLineLogoff(search *dataSearch, fileLineSegments *
 		// date sanity check
 		if timeStart.Unix() < 0 || dateStart.Unix() < 0 {
 			log.WithFields(log.Fields{
-				"session": (*fileLineSegments)[1],
-				"date":    (*fileLineSegments)[3],
-				"time":    (*fileLineSegments)[4],
+				"session": fileLine.name,
+				"date":    fileLine.date,
+				"time":    fileLine.time,
 			}).Warn("api - data: session invalid date or time")
 		} else if dateStart.Year() == src.date.Year() && dateStart.Month() == src.date.Month() { // selected month check
-			search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail((*fileLineSegments)[1], (*fileLineSegments)[2]), Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
-			src.addDate(&(*fileLineSegments)[3], dateStart.Unix()/60/60/24)
+			search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(fileLine.name, fileLine.detail), Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
+			src.addDate(&fileLine.date, dateStart.Unix()/60/60/24)
 		}
 
-		search.logoff = *fileLineSegments
+		search.logoff = *fileLine
 		return
 	}
 
 	// date sanity check
 	if dateStart.Unix() < 0 || dateEnd.Unix() < 0 {
 		log.WithFields(log.Fields{
-			"session": (*fileLineSegments)[1],
-			"date":    search.login[3] + "," + (*fileLineSegments)[3],
+			"session": fileLine.name,
+			"date":    search.login.date + "," + fileLine.date,
 		}).Warn("api - data: session invalid date")
 		return
 	}
@@ -400,8 +438,8 @@ func (src *dataSource) readFileLineLogoff(search *dataSearch, fileLineSegments *
 	// time sanity check
 	if timeStart.Unix() < 0 || timeEnd.Unix() < 0 {
 		log.WithFields(log.Fields{
-			"session": (*fileLineSegments)[1],
-			"time":    search.login[4] + "," + (*fileLineSegments)[4],
+			"session": fileLine.name,
+			"time":    search.login.time + "," + fileLine.time,
 		}).Warn("api - data: session invalid time")
 		return
 	}
@@ -412,20 +450,20 @@ func (src *dataSource) readFileLineLogoff(search *dataSearch, fileLineSegments *
 	}
 
 	search.active = false
-	search.logoff = *fileLineSegments
+	search.logoff = *fileLine
 
 	// over midnight check
 	if dateEnd.Unix() > dateStart.Unix() {
-		search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(search.login[1], search.login[2]), Time: []int{int(timeStart.Unix() / 60), 1440}})        // start to midnight
-		search.sessionList = append(search.sessionList, DataItemSession{Date: dateEnd.Unix() / 60 / 60 / 24, Detail: src.getDetail((*fileLineSegments)[1], (*fileLineSegments)[2]), Time: []int{0, int(timeEnd.Unix() / 60)}}) // midnight to end
+		search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(search.login.name, search.login.detail), Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+		search.sessionList = append(search.sessionList, DataItemSession{Date: dateEnd.Unix() / 60 / 60 / 24, Detail: src.getDetail(fileLine.name, fileLine.detail), Time: []int{0, int(timeEnd.Unix() / 60)}})                // midnight to end
 
-		src.addDate(&search.login[3], dateStart.Unix()/60/60/24)
-		src.addDate(&(*fileLineSegments)[3], dateEnd.Unix()/60/60/24)
+		src.addDate(&search.login.date, dateStart.Unix()/60/60/24)
+		src.addDate(&fileLine.date, dateEnd.Unix()/60/60/24)
 		return
 	}
 
-	search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail((*fileLineSegments)[1], (*fileLineSegments)[2]), Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
-	src.addDate(&search.login[3], dateStart.Unix()/60/60/24)
+	search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(fileLine.name, fileLine.detail), Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
+	src.addDate(&search.login.date, dateStart.Unix()/60/60/24)
 }
 
 func (src *dataSource) addLastSession(search *dataSearch) {
@@ -433,42 +471,42 @@ func (src *dataSource) addLastSession(search *dataSearch) {
 		return
 	}
 
-	if time.Now().Format("02.01.2006") == search.login[3] {
-		dateStart := tl.ParseTime(search.login[3] + "-00:00")
+	if time.Now().Format("02.01.2006") == search.login.date {
+		dateStart := tl.ParseTime(search.login.date + "-00:00")
 
-		timeStart := tl.ParseTime("01.01.1970-" + search.login[4])
+		timeStart := tl.ParseTime("01.01.1970-" + search.login.time)
 		timeEnd := tl.ParseTime("01.01.1970-" + time.Now().Format("15:04"))
 
 		// time & date sanity check
 		if timeStart.Unix() < 0 || dateStart.Unix() < 0 {
 			log.WithFields(log.Fields{
-				"session": search.login[1],
-				"date":    search.login[3],
-				"time":    search.login[4],
+				"session": search.login.name,
+				"date":    search.login.date,
+				"time":    search.login.time,
 			}).Warn("api - data: session invalid date or time")
 		} else {
 			// selected month check
 			if dateStart.Year() == src.date.Year() && dateStart.Month() == src.date.Month() {
-				search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(search.login[1], search.login[2]), Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}}) // start to current time
-				src.addDate(&search.login[3], dateStart.Unix()/60/60/24)
+				search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(search.login.name, search.login.detail), Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}}) // start to current time
+				src.addDate(&search.login.date, dateStart.Unix()/60/60/24)
 			}
 		}
 	} else {
-		timeStart := tl.ParseTime("01.01.1970-" + search.login[4])
-		dateStart := tl.ParseTime(search.login[3] + "-00:00")
+		timeStart := tl.ParseTime("01.01.1970-" + search.login.time)
+		dateStart := tl.ParseTime(search.login.date + "-00:00")
 
 		// time & date sanity check
 		if timeStart.Unix() < 0 || dateStart.Unix() < 0 {
 			log.WithFields(log.Fields{
-				"session": search.login[1],
-				"date":    search.login[3],
-				"time":    search.login[4],
+				"session": search.login.name,
+				"date":    search.login.date,
+				"time":    search.login.time,
 			}).Warn("api - data: session invalid date or time")
 		} else {
 			// selected month check
 			if dateStart.Year() == src.date.Year() && dateStart.Month() == src.date.Month() {
-				search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(search.login[1], search.login[2]), Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
-				src.addDate(&search.login[3], dateStart.Unix()/60/60/24)
+				search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(search.login.name, search.login.detail), Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+				src.addDate(&search.login.date, dateStart.Unix()/60/60/24)
 			}
 		}
 	}
@@ -522,4 +560,15 @@ func (src *dataSource) getDetail(pos1 string, pos2 string) string {
 	default:
 		return "unknown"
 	}
+}
+
+// getSegment: gets value from byte array separated by semicolon
+func getSegment(dst *[]byte, raw *[]byte) bool {
+	idx := bytes.IndexByte(*raw, ';')
+	if idx == -1 {
+		return false
+	}
+	*dst = (*raw)[:idx]
+	*raw = (*raw)[idx+1:]
+	return true
 }

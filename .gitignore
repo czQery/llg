@@ -14,6 +14,7 @@ backend/llg
 backend/llg_old
 backend/dist
 backend/config.json
+backend/cpu.pprof
 
 .idea
 data
