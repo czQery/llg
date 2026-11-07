@@ -4,7 +4,8 @@ import (
 	"os"
 	"strings"
 
-	//_ "net/http/pprof"
+	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/czQery/llg/backend/api"
 	"github.com/czQery/llg/backend/tl"
@@ -20,7 +21,7 @@ func init() {
 		ForceColors:     true,
 		DisableColors:   false,
 		FullTimestamp:   true,
-		TimestampFormat: "02/01/2006 - 15:04:05",
+		TimestampFormat: "02.01.2006;15:04:05",
 	})
 	log.SetOutput(os.Stdout)
 
@@ -34,20 +35,21 @@ func main() {
 	log.Info("main - by: Štěpán Aubrecht")
 	log.Info("main - build: " + tl.Build)
 
-	/* go func() {
+	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}() */
+	}()
 
 	tl.LoadConfig()
 	tl.LoadDist()
 
 	// Fiber
 	r := fiber.New(fiber.Config{
-		CaseSensitive: false, GETOnly: false,
-		BodyLimit:    100 * 1024 * 1024,
-		JSONEncoder:  json.Marshal,
-		JSONDecoder:  json.Unmarshal,
-		ServerHeader: "llg",
+		CaseSensitive: false,
+		GETOnly:       false,
+		BodyLimit:     100 * 1024 * 1024,
+		JSONEncoder:   json.Marshal,
+		JSONDecoder:   json.Unmarshal,
+		ServerHeader:  "llg",
 	})
 
 	// Compression
@@ -56,6 +58,7 @@ func main() {
 	}))
 
 	// API
+	r.Get("/api/health", api.Health)
 	r.Get("/api/info", api.Info)
 	r.Get("/api/data", api.Data)
 

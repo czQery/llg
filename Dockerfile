@@ -1,5 +1,4 @@
 FROM alpine
-
 LABEL maintainer="czQery"
 LABEL authors="czQery"
 

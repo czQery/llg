@@ -72,7 +72,7 @@ func Data(c fiber.Ctx) error {
 	var (
 		dataDates          = make([]int64, 0, 30)
 		searchDateList     = make(map[string]int64)
-		searchDateListKeys = make([]string, 0, len(searchDateList))
+		searchDateListKeys = make([]string, 0, 30)
 
 		dateParam    time.Time
 		usersParam   []string
@@ -337,7 +337,6 @@ func (src *dataSource) readFile(file *os.DirEntry) {
 }
 
 func (src *dataSource) readFileLine(search *dataSearch, fileLine *dataLine) {
-
 	switch fileLine.action {
 	case "login":
 		// mark session start
@@ -363,11 +362,8 @@ func (src *dataSource) readFileLineLogin(search *dataSearch, fileLine *dataLine)
 				"time":    search.login.time,
 			}).Warn("api - data: session invalid date or time")
 		} else {
-			// selected month check
-			if dateStart.Year() == src.date.Year() && dateStart.Month() == src.date.Month() {
-				search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(search.login.name, search.login.detail), Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
-				src.addDate(&search.login.date, dateStart.Unix()/60/60/24)
-			}
+			search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(search.login.name, search.login.detail), Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+			src.addDate(&search.login.date, dateStart.Unix()/60/60/24)
 		}
 
 		search.active = false
@@ -401,7 +397,7 @@ func (src *dataSource) readFileLineLogoff(search *dataSearch, fileLine *dataLine
 	timeStart = tl.ParseTime("01.01.1970-" + search.login.time)
 	dateStart = tl.ParseTime(search.login.date + "-00:00")
 
-	if !search.active || dateStart.Year() != dateEnd.Year() || dateStart.Month() != dateEnd.Month() { // missing login
+	if !search.active { // missing login
 		if search.logoff.action != "" && search.logoff.date == fileLine.date { // previous logoff in same day => filling session from the previous logoff
 			timeStart = tl.ParseTime("01.01.1970-" + search.logoff.time)
 			dateStart = tl.ParseTime(search.logoff.date + "-00:00")
@@ -410,14 +406,14 @@ func (src *dataSource) readFileLineLogoff(search *dataSearch, fileLine *dataLine
 			dateStart = dateEnd
 		}
 
-		// date sanity check
-		if timeStart.Unix() < 0 || dateStart.Unix() < 0 {
+		// date & time sanity check
+		if timeStart.Unix() < 0 || dateStart.Unix() < 0 || timeEnd.Unix() < 0 {
 			log.WithFields(log.Fields{
 				"session": fileLine.name,
 				"date":    fileLine.date,
 				"time":    fileLine.time,
 			}).Warn("api - data: session invalid date or time")
-		} else if dateStart.Year() == src.date.Year() && dateStart.Month() == src.date.Month() { // selected month check
+		} else {
 			search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(fileLine.name, fileLine.detail), Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}})
 			src.addDate(&fileLine.date, dateStart.Unix()/60/60/24)
 		}
@@ -441,11 +437,6 @@ func (src *dataSource) readFileLineLogoff(search *dataSearch, fileLine *dataLine
 			"session": fileLine.name,
 			"time":    search.login.time + "," + fileLine.time,
 		}).Warn("api - data: session invalid time")
-		return
-	}
-
-	// selected month check
-	if dateStart.Year() != src.date.Year() || dateStart.Month() != src.date.Month() || dateEnd.Year() != src.date.Year() || dateEnd.Month() != src.date.Month() {
 		return
 	}
 
@@ -478,18 +469,15 @@ func (src *dataSource) addLastSession(search *dataSearch) {
 		timeEnd := tl.ParseTime("01.01.1970-" + time.Now().Format("15:04"))
 
 		// time & date sanity check
-		if timeStart.Unix() < 0 || dateStart.Unix() < 0 {
+		if timeStart.Unix() < 0 || dateStart.Unix() < 0 || timeEnd.Unix() < 0 {
 			log.WithFields(log.Fields{
 				"session": search.login.name,
 				"date":    search.login.date,
 				"time":    search.login.time,
 			}).Warn("api - data: session invalid date or time")
 		} else {
-			// selected month check
-			if dateStart.Year() == src.date.Year() && dateStart.Month() == src.date.Month() {
-				search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(search.login.name, search.login.detail), Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}}) // start to current time
-				src.addDate(&search.login.date, dateStart.Unix()/60/60/24)
-			}
+			search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(search.login.name, search.login.detail), Time: []int{int(timeStart.Unix() / 60), int(timeEnd.Unix() / 60)}}) // start to current time
+			src.addDate(&search.login.date, dateStart.Unix()/60/60/24)
 		}
 	} else {
 		timeStart := tl.ParseTime("01.01.1970-" + search.login.time)
@@ -503,11 +491,8 @@ func (src *dataSource) addLastSession(search *dataSearch) {
 				"time":    search.login.time,
 			}).Warn("api - data: session invalid date or time")
 		} else {
-			// selected month check
-			if dateStart.Year() == src.date.Year() && dateStart.Month() == src.date.Month() {
-				search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(search.login.name, search.login.detail), Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
-				src.addDate(&search.login.date, dateStart.Unix()/60/60/24)
-			}
+			search.sessionList = append(search.sessionList, DataItemSession{Date: dateStart.Unix() / 60 / 60 / 24, Detail: src.getDetail(search.login.name, search.login.detail), Time: []int{int(timeStart.Unix() / 60), 1440}}) // start to midnight
+			src.addDate(&search.login.date, dateStart.Unix()/60/60/24)
 		}
 	}
 }
