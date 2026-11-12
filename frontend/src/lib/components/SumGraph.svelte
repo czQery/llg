@@ -2,8 +2,8 @@
     import {type itemActive, itemActiveStore} from "../ts/global";
     import {formatDuration} from "../ts/helper";
 
-    let sums: itemActive[] = [];
-    let sumsSum: number = 0;
+    let sums: itemActive[] = $state([]);
+    let sumsSum: number = $state(0);
 
     itemActiveStore.subscribe((value: itemActive[]) => {
         if (value) {

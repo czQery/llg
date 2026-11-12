@@ -4,9 +4,13 @@
     import {type dataItem, type dataItemSession, type dataSum} from "../ts/api";
     import {dataStore, type itemActive, itemActiveStore, type itemInput} from "../ts/global";
 
-    export let itemInputList: itemInput[] = [];
-    export let aspElement: HTMLSpanElement;
-    let chElement: HTMLCanvasElement;
+    interface Props {
+        itemInputList?: itemInput[];
+        aspElement: HTMLSpanElement;
+    }
+
+    let { itemInputList = [], aspElement = $bindable() }: Props = $props();
+    let chElement: HTMLCanvasElement | undefined = $state();
     let data: dataSum = {dates: [], items: [], time: 0, lines: 0};
 
     Chart.register(LinearScale, BarController, BarElement, PointElement, Tooltip);
@@ -240,4 +244,3 @@
 </script>
 
 <canvas id="ch" bind:this={chElement}></canvas>
-

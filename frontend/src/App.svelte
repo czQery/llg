@@ -8,14 +8,14 @@
     import {parseSelection} from "./lib/ts/param";
     import {inputToString} from "./lib/ts/helper.js";
 
-    let info: infoSum = {build: "", selected_items: 0, users: [], devices: []};
-    let infoItemInput: itemInput[] = [];
+    let info: infoSum = $state({build: "", selected_items: 0, users: [], devices: []});
+    let infoItemInput: itemInput[] = $state([]);
 
-    let data: dataSum = {dates: [], items: [], time: 0, lines: 0};
+    let data: dataSum = $state({dates: [], items: [], time: 0, lines: 0});
 
-    let aspElement: HTMLSpanElement;
-    let dateInputElement: HTMLInputElement;
-    let itemInputList: itemInput[] = [];
+    let aspElement: HTMLSpanElement | undefined = $state();
+    let dateInputElement: HTMLInputElement | undefined = $state();
+    let itemInputList: itemInput[] = $state([]);
 
     infoStore.subscribe((value: infoSum) => {
         if (value) {
@@ -53,10 +53,10 @@
         if (urlDate) {
             let dateP = Date.parse(urlDate);
             if (dateP) {
-                dateInputElement.value = getDate(new Date(dateP));
+                dateInputElement!.value = getDate(new Date(dateP));
             }
         } else {
-            dateInputElement.value = getDate(new Date());
+            dateInputElement!.value = getDate(new Date());
         }
 
         let list: itemInput[] = [];
@@ -74,13 +74,13 @@
 
     let renderLast: string = "";
     const render = async () => {
-        let dateP = Date.parse(dateInputElement.value);
+        let dateP = Date.parse(dateInputElement!.value);
         if (!dateP) {
-            dateInputElement.value = getDate(new Date());
+            dateInputElement!.value = getDate(new Date());
             return;
         }
         let date = new Date(dateP);
-        dateInputElement.value = getDate(date);
+        dateInputElement!.value = getDate(date);
 
         const url = new URL(window.location.toString());
         url.searchParams.set("date", getDate(date));
@@ -95,7 +95,7 @@
             return;
         }
 
-        let param = "?date=" + encodeURIComponent(dateInputElement.value)
+        let param = "?date=" + encodeURIComponent(dateInputElement!.value)
             + "&users="
             + encodeURIComponent(inputToString(itemInputList, "user"))
             + "&devices="
@@ -135,7 +135,7 @@
             <div>
                 <label for="date">Month:</label>
                 <input id="date" type="month" name="month" min="2000-00"
-                       on:change={render}
+                       onchange={render}
                        bind:this={dateInputElement}/>
             </div>
             <div>
@@ -154,18 +154,17 @@
         </form>
         <div id="header-asp">
             <span bind:this={aspElement}></span>
-            <button on:click={() => {navigator.clipboard.writeText(aspElement.innerText)}}>copy
+            <button onclick={() => {navigator.clipboard.writeText(aspElement!.innerText)}}>copy
                 admin path
             </button>
         </div>
     </header>
     <div id="wrapper">
-        <!--<Details/>-->
         <Graph aspElement={aspElement} itemInputList={itemInputList}/>
     </div>
     <SumGraph/>
     <footer id="footer">
-        <span>Created by <a href="https://qery.cz/l/g_llg">Štěpán Aubrecht</a></span>
+        <span>Created by <a href="https://qery.cz">Štěpán Aubrecht</a></span>
         <div id="stats">
             <span>{data.time / 1_000_000 + " ms"}</span>
             <span>|</span>
@@ -177,130 +176,6 @@
 </main>
 
 <style>
-    :global(.sv-control) {
-        border: 1px solid #FFF !important;
-        border-radius: var(--rad) !important;
-        min-height: 30px !important;
-        height: 30px !important;
-        color: #000 !important;
-        outline: none !important;
-    }
-
-    :global(.sv-control:hover) {
-        cursor: text;
-    }
-
-    :global(.sv-control.is-active) {
-        border: 1px solid var(--cb) !important;
-        outline: none !important;
-    }
-
-    :global(.indicator-icon) {
-        transition: var(--transition) color linear !important;
-    }
-
-    :global(.indicator-icon:hover) {
-        cursor: pointer !important;
-    }
-
-    :global(.sv-content.sv-input-row) {
-        transition: var(--transition) font-size linear;
-    }
-
-    :global(.sv-content.sv-input-row:has(.inputBox:focus)) {
-        font-size: 0 !important;
-    }
-
-    :global(.inputBox) {
-        font-size: 16px !important;
-        color: #000 !important;
-    }
-
-    :global(.inputBox:focus::placeholder) {
-        color: #000 !important;
-        opacity: 0 !important;
-    }
-
-    :global(.inputBox::placeholder) {
-        color: #000 !important;
-        opacity: 0.4 !important;
-    }
-
-    :global(.sv-item) {
-        margin: 2px !important;
-        border-radius: var(--rad) !important;
-    }
-
-    :global(.sv-item-btn) {
-        border-radius: var(--rad) !important;
-        transition: var(--transition) all linear !important;
-    }
-
-    :global(.sv-item-btn:hover) {
-        background-color: var(--sv-item-btn-bg, var(--sv-item-selected-bg)) !important;
-        filter: var(--hover);
-    }
-
-    :global(.sv-item-btn:active) {
-        animation: reverse click-scale 100ms !important;
-    }
-
-    :global(.sv-item-btn svg) {
-        fill: var(--c0) !important;
-    }
-
-    :global(.sv-dropdown) {
-        border-radius: var(--rad) !important;
-    }
-
-    :global(.sv-dropdown .has-multiSelection) {
-        flex-direction: column;
-    }
-
-    :global(.sv-dropdown-scroll.is-empty) {
-        height: 4px;
-    }
-
-    :global(.sv-dropdown-scroll .sv-group-header) {
-        color: #000;
-        text-align: left !important;
-    }
-
-    :global(.sv-control.is-active > .has-multiSelection > div) {
-        width: 100%;
-    }
-
-    :global(.sv-item-content) {
-        border-radius: var(--rad) !important;
-    }
-
-    :global(.sv-item-content div) {
-        display: flex;
-        width: 100%;
-        max-width: 183px;
-        overflow: hidden;
-    }
-
-    :global(.sv-dd-item .sv-item) {
-        transition: var(--transition) all linear !important;
-    }
-
-    :global(.sv-dd-item .sv-item-content div) {
-        max-width: 192px !important;
-    }
-
-    :global(.sv-item-content div svg) {
-        height: 19px;
-        width: 19px;
-        margin: 0 6px 0 0;
-        padding: 2px 0;
-        border-radius: var(--rad);
-        background-color: var(--bg);
-        stroke: white;
-        display: inline-block;
-        min-width: 19px;
-    }
-
     #header {
         height: 100%;
         display: grid;
@@ -369,24 +244,18 @@
     }
 
     #header form div input::-webkit-calendar-picker-indicator {
-        opacity: 0.2;
+        opacity: 0.265;
         transition: var(--transition) opacity linear;
         margin: 0 0 0 55px;
     }
 
     #header form div input::-webkit-calendar-picker-indicator:hover {
-        opacity: 0.4;
+        opacity: 0.81;
         cursor: pointer;
     }
 
     #header form div input:focus {
         border: 1px solid var(--cb);
-    }
-
-    :global(.svelecte-control.svelecte) {
-        height: 30px;
-        width: 230px !important;
-        flex-grow: 0 !important;
     }
 
     #header-asp {
