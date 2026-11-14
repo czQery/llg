@@ -11,6 +11,7 @@
 
     let { op = [] }: Props = $props()
     let itemListSelect: itemInput[] = $state([])
+    let itemColors: Record<string, string> = $state({})
     let init: boolean = true;
 
     itemInputStore.subscribe((value: itemInput[]) => {
@@ -30,25 +31,12 @@
         let style: string = "--bg: var(--c0)";
 
         if (isSelected) {
-        	console.log("selected", item.value, item.color)
-            for (const u of itemListSelect) {
-                if (item.value == u.value) {
-                    item.color = u.color;
-                    break;
-                }
-            }
-
-            if (!item.color) {
+            // reuse a previously assigned color
+            if (itemColors[item.value]) {
+                item.color = itemColors[item.value];
+            } else {
                 let color = getPaletteColor();
-                let uIndex = 0;
-
-                for (let i = 0; i < itemListSelect.length; i++) {
-                    if (itemListSelect[i].value == item.value) {
-                        uIndex = i;
-                    }
-                }
-
-                itemListSelect[uIndex].color = color;
+                itemColors[item.value] = color;
                 item.color = color;
             }
 
@@ -181,7 +169,12 @@
     }
 
     :global(.sv-control--selection) {
-    	padding-left: 6px !important;
+        padding-left: 6px !important;
+    }
+
+    :global(.svelecte.is-focused .sv-control--selection > span:not(.sv-input--sizer)),
+    :global(.sv-control--selection.has-input > span:not(.sv-input--sizer)) {
+        display: none !important;
     }
 
     :global(.sv_dropdown) {
