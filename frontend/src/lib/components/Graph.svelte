@@ -30,6 +30,18 @@
                 labels: [],
                 datasets: []
             },
+            plugins: [
+	            {
+	                id: "forceUpdateAnimation",
+	                afterDraw: (chart) => {
+		                if (!(chart as any)._hasAnimated) {
+		                    (chart as any)._hasAnimated = true;
+		                    chart.reset();
+		                    chart.update();
+		                }
+	                },
+	            },
+            ],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
@@ -38,6 +50,9 @@
                 borderRadius: 3, // index.html var(--rad)
                 borderSkipped: false,
                 borderColor: "rgba(0, 0, 0, 0)",
+                animation: {
+                	duration: 200,
+                },
                 plugins: {
                     legend: {
                         display: false,
@@ -145,7 +160,7 @@
                         ticks: {
                             stepSize: 60,
                             callback: (value) => {
-                                return formatTime((value as number));
+                                return formatTime(Math.round(value as number))
                             }
                         },
                         beginAtZero: true,
@@ -221,6 +236,8 @@
             chart.data.datasets.push({
                 label: data.items[i].name,
                 backgroundColor: color,
+                barPercentage: 0.9,
+                categoryPercentage: 0.8,
                 //@ts-ignore
                 data: data.items[i].sessions.map((row: dataItemSession) => {
                     return {x: row.date, y: row.time}
