@@ -1,263 +1,273 @@
 <script lang="ts">
-    import {BarController, BarElement, Chart, LinearScale, PointElement, Tooltip} from "chart.js";
-    import {formatDate, formatDuration, formatTime, sleep} from "../ts/helper";
-    import {type dataItem, type dataItemSession, type dataSum} from "../ts/api";
-    import {dataStore, type itemActive, itemActiveStore, type itemInput} from "../ts/global";
+import { BarController, BarElement, Chart, LinearScale, PointElement, Tooltip } from "chart.js"
+import type { dataItem, dataItemSession, dataSum } from "../ts/api"
+import { dataStore, type itemActive, itemActiveStore, type itemInput } from "../ts/global"
+import { formatDate, formatDuration, formatTime, sleep } from "../ts/helper"
 
-    interface Props {
-        itemInputList?: itemInput[];
-        aspElement: HTMLSpanElement;
-    }
+interface Props {
+	itemInputList?: itemInput[]
+	aspElement: HTMLSpanElement
+}
 
-    let { itemInputList = [], aspElement = $bindable() }: Props = $props();
-    let chElement: HTMLCanvasElement | undefined = $state();
-    let data: dataSum = {dates: [], items: [], time: 0, lines: 0};
+let { itemInputList = [], aspElement = $bindable() }: Props = $props()
+let chElement: HTMLCanvasElement | undefined = $state()
+let data: dataSum = { dates: [], items: [], time: 0, lines: 0 }
 
-    Chart.register(LinearScale, BarController, BarElement, PointElement, Tooltip);
-    let chart: Chart<"bar", (number[] | undefined)[], number> | undefined;
-    const initChart = async (): Promise<Chart<"bar", (number[] | undefined)[], number>> => {
+Chart.register(LinearScale, BarController, BarElement, PointElement, Tooltip)
+let chart: Chart<"bar", (number[] | undefined)[], number> | undefined
+const initChart = async (): Promise<Chart<"bar", (number[] | undefined)[], number>> => {
+	while (true) {
+		if (chElement) {
+			break
+		}
+		await sleep(50)
+	}
 
-        while (true) {
-            if (chElement) {
-                break;
-            }
-            await sleep(50);
-        }
+	return new Chart(chElement, {
+		type: "bar",
+		data: {
+			labels: [],
+			datasets: [],
+		},
+		plugins: [
+			{
+				id: "forceUpdateAnimation",
+				afterDraw: (chart) => {
+					if (!(chart as any)._hasAnimated) {
+						;(chart as any)._hasAnimated = true
+						chart.reset()
+						chart.update()
+					}
+				},
+			},
+		],
+		options: {
+			responsive: true,
+			maintainAspectRatio: false,
+			maxBarThickness: 80,
+			borderWidth: 0,
+			borderRadius: 3, // index.html var(--rad)
+			borderSkipped: false,
+			borderColor: "rgba(0, 0, 0, 0)",
+			animation: {
+				duration: 200,
+			},
+			plugins: {
+				legend: {
+					display: false,
+					labels: {
+						font: {
+							size: 15,
+						},
+					},
+				},
+				title: {
+					display: false,
+				},
+				tooltip: {
+					yAlign: "bottom",
+					backgroundColor: "rgba(38, 36, 40, 0.9)", // index.html var(--c0)
+					multiKeyBackground: "rgba(0, 0, 0, 0)",
+					cornerRadius: 3, // index.html var(--rad)
+					//@ts-expect-error
+					events: ["click", "touchstart"],
+					titleFont: {
+						size: 15,
+					},
+					bodyFont: {
+						size: 15,
+					},
+					callbacks: {
+						title: (items) => {
+							//@ts-expect-error
+							let session: number = items[0].raw.y[1] - items[0].raw.y[0]
+							let day = 0
 
-        return new Chart(chElement, {
-            type: "bar",
-            data: {
-                labels: [],
-                datasets: []
-            },
-            plugins: [
-	            {
-	                id: "forceUpdateAnimation",
-	                afterDraw: (chart) => {
-		                if (!(chart as any)._hasAnimated) {
-		                    (chart as any)._hasAnimated = true;
-		                    chart.reset();
-		                    chart.update();
-		                }
-	                },
-	            },
-            ],
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                maxBarThickness: 80,
-                borderWidth: 0,
-                borderRadius: 3, // index.html var(--rad)
-                borderSkipped: false,
-                borderColor: "rgba(0, 0, 0, 0)",
-                animation: {
-                	duration: 200,
-                },
-                plugins: {
-                    legend: {
-                        display: false,
-                        labels: {
-                            font: {
-                                size: 15
-                            }
-                        },
-                    },
-                    title: {
-                        display: false
-                    },
-                    tooltip: {
-                        yAlign: "bottom",
-                        backgroundColor: "rgba(38, 36, 40, 0.9)", // index.html var(--c0)
-                        multiKeyBackground: "rgba(0, 0, 0, 0)",
-                        cornerRadius: 3, // index.html var(--rad)
-                        //@ts-ignore
-                        events: ["click", "touchstart"],
-                        titleFont: {
-                            size: 15
-                        },
-                        bodyFont: {
-                            size: 15
-                        },
-                        callbacks: {
-                            title: (items) => {
-                                //@ts-ignore
-                                let session: number = items[0]["raw"]["y"][1] - items[0]["raw"]["y"][0];
-                                let day = 0;
+							for (const d of items[0].dataset.data) {
+								//@ts-expect-error
+								if (d.x === items[0].raw.x) {
+									//@ts-expect-error
+									day = day + (d.y[1] - d.y[0])
+								}
+							}
 
-                                for (const d of items[0]["dataset"]["data"]) {
-                                    //@ts-ignore
-                                    if (d["x"] == items[0]["raw"]["x"]) {
-                                        //@ts-ignore
-                                        day = day + (d["y"][1] - d["y"][0]);
-                                    }
-                                }
+							let raw = data.items.find((u: dataItem) => u.name === items[0].dataset.label)
+							let rawSession = raw?.sessions[items[0].dataIndex]
+							let detail: string = ""
 
-                                let raw = data.items.find((u: dataItem) => u.name == items[0]["dataset"]["label"]);
-                                let rawSession = raw?.sessions[items[0]["dataIndex"]];
-                                let detail: string = "";
+							if (!rawSession?.detail || !raw?.type) {
+								return `Name: ${items[0].dataset.label}${detail}\nSession: ${formatDuration(session)}\nDay: ${formatDuration(day)}`
+							}
 
-                                if (!rawSession || !rawSession.detail || !raw!.type) {
-                                    return "Name: " + items[0]["dataset"]["label"] + detail + "\nSession: " + formatDuration(session) + "\nDay: " + formatDuration(day);
-                                }
+							switch (raw?.type) {
+								case "user":
+									aspElement.textContent = `\\\\${rawSession.detail.split(" ")[0]}\\c$`
+									detail =
+										"\nPC: " +
+										rawSession.detail.split(" ")[0] +
+										"\nIP: " +
+										rawSession.detail.split(" ")[1].replace("(", "").replace(")", "") +
+										"\nType: " +
+										raw?.type +
+										"\n"
+									return `User: ${items[0].dataset.label}${detail}\nSession: ${formatDuration(session)}\nDay: ${formatDuration(day)}`
+								case "device":
+									aspElement.textContent = `\\\\${items[0].dataset.label?.split(" ")[0]}\\c$`
+									detail =
+										"\nPC: " +
+										items[0].dataset.label +
+										"\nIP: " +
+										rawSession.detail.split(" ")[1].replace("(", "").replace(")", "") +
+										"\nType: " +
+										raw?.type +
+										"\n"
+									return `User: ${rawSession.detail.split(" ")[0]}${detail}\nSession: ${formatDuration(session)}\nDay: ${formatDuration(day)}`
+							}
+						},
+						label: (item) => {
+							//@ts-expect-error
+							return [`${formatTime(item.raw.y[0])} - ${formatTime(item.raw.y[1])} (${formatDate(item.raw.x)})`]
+						},
+						labelColor: (item) => ({
+							borderColor: "rgba(0, 0, 0, 0)",
+							backgroundColor: `${item.dataset.backgroundColor?.toString()}`,
+							borderWidth: 0,
+							borderDash: [0, 0],
+							borderRadius: 3, // index.html var(--rad)
+						}),
+					},
+				},
+			},
+			scales: {
+				x: {
+					type: "linear",
+					stacked: false,
+					ticks: {
+						stepSize: 1,
+						callback: (value) => {
+							if ((value as number) < 10) {
+								return null
+							}
 
-                                switch (raw?.type) {
-                                    case "user":
-                                        aspElement.innerText = "\\\\" + rawSession.detail.split(" ")[0] + "\\c$";
-                                        detail = "\nPC: " + rawSession.detail.split(" ")[0] + "\nIP: " + rawSession.detail.split(" ")[1].replace("(", "").replace(")", "") + "\nType: " + raw?.type + "\n";
-                                        return "User: " + items[0]["dataset"]["label"] + detail + "\nSession: " + formatDuration(session) + "\nDay: " + formatDuration(day);
-                                    case "device":
-                                        aspElement.innerText = "\\\\" + items[0]["dataset"]["label"]!.split(" ")[0] + "\\c$";
-                                        detail = "\nPC: " + items[0]["dataset"]["label"] + "\nIP: " + rawSession.detail.split(" ")[1].replace("(", "").replace(")", "") + "\nType: " + raw?.type + "\n";
-                                        return "User: " + rawSession.detail.split(" ")[0] + detail + "\nSession: " + formatDuration(session) + "\nDay: " + formatDuration(day);
-                                }
-                            },
-                            label: (item) => {
-                                //@ts-ignore
-                                return [formatTime(item["raw"]["y"][0]) + " - " + formatTime(item["raw"]["y"][1]) + " (" + formatDate(item["raw"]["x"]) + ")"];
-                            },
-                            labelColor: function (item) {
-                                return {
-                                    borderColor: "rgba(0, 0, 0, 0)",
-                                    backgroundColor: "" + item.dataset.backgroundColor,
-                                    borderWidth: 0,
-                                    borderDash: [0, 0],
-                                    borderRadius: 3, // index.html var(--rad)
-                                };
-                            },
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        type: "linear",
-                        stacked: false,
-                        ticks: {
-                            stepSize: 1,
-                            callback: (value) => {
-                                if ((value as number) < 10) {
-                                    return null;
-                                }
+							if (data.dates.length === 1) {
+								let timeThis = new Date((value as number) * 60 * 60 * 24 * 1000)
+								let timeData = new Date(data.dates[0] * 60 * 60 * 24 * 1000)
 
-                                if (data.dates.length == 1) {
-                                    let timeThis = new Date((value as number) * 60 * 60 * 24 * 1000);
-                                    let timeData = new Date(data.dates[0] * 60 * 60 * 24 * 1000);
+								if (timeThis.getMonth() !== timeData.getMonth() || timeThis.getFullYear() !== timeData.getFullYear()) {
+									return ""
+								}
+							}
 
-                                    if (timeThis.getMonth() != timeData.getMonth() || timeThis.getFullYear() != timeData.getFullYear()) {
-                                        return "";
-                                    }
-                                }
+							return formatDate(value as number)
+						},
+					},
+					beginAtZero: false,
+				},
+				y: {
+					type: "linear",
+					stacked: false,
+					min: 0,
+					max: 1440,
+					ticks: {
+						stepSize: 60,
+						callback: (value) => {
+							return formatTime(Math.round(value as number))
+						},
+					},
+					beginAtZero: true,
+				},
+			},
+		},
+	})
+}
 
-                                return formatDate((value as number));
-                            }
-                        },
-                        beginAtZero: false,
-                    },
-                    y: {
-                        type: "linear",
-                        stacked: false,
-                        min: 0,
-                        max: 1440,
-                        ticks: {
-                            stepSize: 60,
-                            callback: (value) => {
-                                return formatTime(Math.round(value as number))
-                            }
-                        },
-                        beginAtZero: true,
-                    }
-                }
-            },
-        });
-    }
+dataStore.subscribe(async (value: dataSum) => {
+	if (!chart) {
+		chart = await initChart()
+	} else {
+		chart.data.labels = []
+		chart.data.datasets = []
+		if (chart.tooltip) {
+			chart.tooltip.setActiveElements([], { x: 0, y: 0 })
+		}
 
-    dataStore.subscribe(async (value: dataSum) => {
-        if (!chart) {
-            chart = await initChart();
-        } else {
-            chart.data.labels = [];
-            chart.data.datasets = [];
-            if (chart.tooltip) {
-                chart.tooltip.setActiveElements([], {x: 0, y: 0});
-            }
+		//@ts-expect-error
+		chart.options.scales.x.min = null
+		//@ts-expect-error
+		chart.options.scales.x.max = null
 
-            //@ts-ignore
-            chart.options.scales.x.min = null;
-            //@ts-ignore
-            chart.options.scales.x.max = null;
+		chart.update()
+		itemActiveStore.set([])
+	}
 
-            chart.update();
-            itemActiveStore.set([]);
-        }
+	if (!value?.dates || !value.items) {
+		return
+	}
 
-        if (!value || !value.dates || !value.items) {
-            return;
-        }
+	data = value
 
-        data = value;
+	chart.data.labels = data.dates
 
-        chart.data.labels = data.dates;
+	let startDate = new Date(data.dates[0] * 60 * 60 * 24 * 1000)
+	let endDate = new Date(data.dates[0] * 60 * 60 * 24 * 1000)
 
-        let startDate = new Date(data.dates[0] * 60 * 60 * 24 * 1000);
-        let endDate = new Date(data.dates[0] * 60 * 60 * 24 * 1000);
+	let rangeMin = new Date(startDate.getFullYear(), startDate.getMonth(), 2)
+	let rangeMax = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 1)
 
-        let rangeMin = new Date(startDate.getFullYear(), startDate.getMonth(), 2);
-        let rangeMax = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 1);
+	//@ts-expect-error
+	chart.options.scales.x.min = Math.trunc(rangeMin.valueOf() / 60 / 60 / 24 / 1000)
+	//@ts-expect-error
+	chart.options.scales.x.max = Math.trunc(rangeMax.valueOf() / 60 / 60 / 24 / 1000)
 
-        //@ts-ignore
-        chart.options.scales.x.min = Math.trunc(rangeMin.valueOf() / 60 / 60 / 24 / 1000);
-        //@ts-ignore
-        chart.options.scales.x.max = Math.trunc(rangeMax.valueOf() / 60 / 60 / 24 / 1000);
+	let aUsers: itemActive[] = []
 
-        let aUsers: itemActive[] = [];
+	for (let i = 0; i < data.items.length; i++) {
+		if (!data.items[i].sessions) {
+			continue
+		}
 
-        for (let i = 0; i < data.items.length; i++) {
+		let color: string = ""
+		for (const u of itemInputList) {
+			if (u.value.toLowerCase() === data.items[i].name.toLowerCase().split(" ")[0]) {
+				color = u.color
+				break
+			}
+		}
 
-            if (!data.items[i].sessions) {
-                continue;
-            }
+		if (color === "") {
+			for (const u of itemInputList) {
+				if (u.value.toLowerCase().includes(data.items[i].name.toLowerCase().split(" ")[0])) {
+					color = u.color
+					break
+				}
+			}
+		}
 
-            let color: string = "";
-            for (const u of itemInputList) {
-                if (u.value.toLowerCase() == data.items[i].name.toLowerCase().split(" ")[0]) {
-                    color = u.color;
-                    break;
-                }
-            }
+		chart.data.datasets.push({
+			label: data.items[i].name,
+			backgroundColor: color,
+			barPercentage: 0.9,
+			categoryPercentage: 0.8,
+			//@ts-expect-error
+			data: data.items[i].sessions.map((row: dataItemSession) => {
+				return { x: row.date, y: row.time }
+			}),
+			hidden: false,
+		})
 
-            if (color === "") {
-                for (const u of itemInputList) {
-                    if (u.value.toLowerCase().includes(data.items[i].name.toLowerCase().split(" ")[0])) {
-                        color = u.color;
-                        break;
-                    }
-                }
-            }
+		let uSum = 0
+		for (const s of data.items[i].sessions) {
+			if (!s.time) continue
 
-            chart.data.datasets.push({
-                label: data.items[i].name,
-                backgroundColor: color,
-                barPercentage: 0.9,
-                categoryPercentage: 0.8,
-                //@ts-ignore
-                data: data.items[i].sessions.map((row: dataItemSession) => {
-                    return {x: row.date, y: row.time}
-                }),
-                hidden: false
-            });
+			uSum = uSum + (s.time[1] - s.time[0])
+		}
 
-            let uSum = 0;
-            for (const s of data.items[i].sessions) {
-                if (!s.time) continue;
+		aUsers.push({ name: data.items[i].name, color: color, sum: uSum })
+	}
 
-                uSum = uSum + (s.time[1] - s.time[0]);
-            }
-
-            aUsers.push({name: data.items[i].name, color: color, sum: uSum});
-        }
-
-        chart.update();
-        itemActiveStore.set(aUsers);
-    });
+	chart.update()
+	itemActiveStore.set(aUsers)
+})
 </script>
 
 <canvas id="ch" bind:this={chElement}></canvas>
